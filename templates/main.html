@@ -1,0 +1,53 @@
+<html>
+
+<script>
+function getUI()
+{
+   var xhr;
+   var params = "0";
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/refresh/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           var element = document.getElementById('textblock');
+           element.innerHTML = xhr.responseText;
+       }
+   }
+}
+
+function scanNetwork()
+{
+   var xhr;
+   var params = "0";
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/scannetwork/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+//           var element = document.getElementById('textblock');
+//           element.innerHTML = xhr.responseText;
+       }
+   }
+}
+</script>
+
+<body>
+        <div id="textblock" style="margin: 0 auto;">
+            &nbsp;
+        </div>
+</body>
+
+<script>
+window.onload = getUI();
+</script>
+
+</html>
