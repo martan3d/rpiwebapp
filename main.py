@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, jsonify
 import MySQLdb
-from xbee import *
 import time
+import redis
 
 main_api = Blueprint('main_api', __name__)
 
+NOP = "sent"
 
 # main entry point, used on load page
 @main_api.route('/main/', methods=['GET','POST'])
@@ -16,6 +17,8 @@ def main():
 def refresh():
 
     data = '<svg id="svg1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000">'
+    data = data + '<style>.myfont { font: 20px sans-serif; } </style>'
+
     data = data + drawNodes(data)
     data = data + "</svg>"
     return data
@@ -44,47 +47,24 @@ def drawBox(x, y, id, name, address, type, status):
          onclick="javascript:scanNetwork();"
         />''' % ( x, y)      #'''
 
-    data = data + '<text x="%s" y="%s" font-size="28" fill="black">' % (x+100, y+40)
+    data = data + '<text x="%s" y="%s" font-size="28" class="myfont" fill="black">' % (x+100, y+40)
     data = data + '%s' % name
     data = data + '</text>'
 
-    data = data + '<text x="%s" y="%s" font-size="22" fill="black">' % (x+100, y+80)
+    data = data + '<text x="%s" y="%s" font-size="22" class="myfont" fill="black">' % (x+100, y+80)
     data = data + '%s' % address
     data = data + '</text>'
 
 
     return data
 
-# find neighbors on the Digimesh Network
+# find neighbors on the Network
 @main_api.route('/scannetwork/', methods=['POST', 'GET'])
 def scannetwork():
+    print "push tx message code"
 
-    print "scannetwork"
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], 'SCAN' )
 
-    Xbee = xbeeController()
-    Xbee.clear()
+    return NOP
 
-    Xbee.xbeeDataQuery('F','N')
-    time.sleep(5)
-
-    for i in range(0,4):                        # range is too small here for a large network
-        data = Xbee.getPacket()
-        try:
-           print "from address: ", hex(ord(data[10])), hex(ord(data[11])), hex(ord(data[12])), hex(ord(data[13])), hex(ord(data[14])), hex(ord(data[15])), hex(ord(data[16])), hex(ord(data[17])),
-           print "  | Node ID: ",
-           ni = ""
-           for i in range(18,38):
-           # if this equals 00 hex, it is end of string, otherwise it's up to 20 bytes
-           #print hex(ord(data[i])),
-               d = data[i]
-               if d == 0:
-                  for x in range(i, 38):
-                      ni = ni + ' '
-                  break
-               else:
-                  ni= ni + data[i]
-           print ni
-        except:
-           pass
-
-    Xbee.close()

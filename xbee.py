@@ -1,9 +1,11 @@
+# ESCaped Version of Xbee communications
+
 import serial
 
 class xbeeController:
     def __init__(self):
         usbPort = '/dev/ttyUSB0'
-        self.sp = serial.Serial(usbPort, 38400, timeout=0)
+        self.sp = serial.Serial(usbPort, 38400, timeout=0.25)
 
     def close(self):
         self.sp.close()
@@ -16,28 +18,50 @@ class xbeeController:
 
     def getPacket(self):
         r = self.sp.read(1)
+        if r == '':
+           return None
         try:
            d = ord(r)
         except:
-           return ""
-
-        if d != 0x7e:
-           print "first byte not a header"
            return None
 
-        lh = ord(self.sp.read(1))
-        ll = ord(self.sp.read(1))
+        if d != 0x7e:
+          while(1):
+             try:
+                d = ord(self.sp.read(1))
+             except:
+                return None
+
+             if d == None:
+                return None
+
+             if d == 0x7e:
+                break
+
+        l1 = self.sp.read(1)
+        if l1 == '': return None
+
+        lh = ord(l1)
+
+        l2 = self.sp.read(1)
+        if l2 == '': return None
+        ll = ord(l2)
 
         l = lh << 8
         l = lh | ll
 
-        data = self.sp.read(l+1)
+        try:
+           data = self.sp.read(l+1)
+        except:
+           return None
+
         rdata = chr(d) + chr(lh) + chr(ll) + data
         return rdata
 
 
     def xbeeDataQuery(self, cmdh, cmdl):
         frame = []
+        escframe = []
         c0 = ord(cmdl)
         c1 = ord(cmdh)
         frame.append(0x7e)	# header
@@ -56,8 +80,24 @@ class xbeeController:
 	i = (255-cks) & 0x00ff
 	frame[7] = i	        # and put it in the message
 
-	for i in range(0,8):	# send it out the serial port to the xbee
-            self.sp.write(chr(frame[i]))
+        escframe.append(0x7e)   # start character
+
+        for i in range(1,8):    # escape character 7E 7D 11 13 but not first one
+            if frame[i] == 0x7e or frame[i] == 0x7d or frame[i] == 0x11 or frame[i] == 0x13:
+               escframe.append(0x7d)
+               escchar = frame[i] ^ 0x20
+               escframe.append(escchar)
+            else:
+               escframe.append(frame[i])
+
+        l = len(escframe)
+	for i in range(0,l):	# send it out the serial port to the xbee
+            self.sp.write(chr(escframe[i]))
+
+
+#
+# Command to Random Xbee out there
+#
 
     def xbeeTransmitDataFrame(self, dest, data):
         txdata = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
@@ -71,6 +111,7 @@ class xbeeController:
             i = i + 1
 
         frame = []
+        escframe = []
         frame.append(0x7e)	# header
 	frame.append(0)	        # our data is always fixed size, 20 bytes of payload
 	frame.append(0x22)      # this is all data except header, length and checksum
@@ -104,6 +145,10 @@ class xbeeController:
 
 	i = (255-cks) & 0x00ff
         frame[37] = i
+
+
+
+
 
 	for i in range(0,38):	# send it out the serial port to the xbee
             self.sp.write(chr(frame[i]))
