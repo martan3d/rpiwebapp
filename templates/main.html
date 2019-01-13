@@ -38,12 +38,46 @@ function scanNetwork()
        }
    }
 }
+
+function getNode(id)
+{
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    form.setAttribute("action", '/displaynode/');
+
+    var hf = document.createElement("input");
+    hf.setAttribute("type", "hidden");
+    hf.setAttribute("name", "address");
+    hf.setAttribute("value", id);
+    form.appendChild(hf);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+
 </script>
+<style>
+
+a.menu_links {
+    cursor: pointer;
+}
+
+rect { cursor: pointer; }
+text { cursor: pointer; }
+
+.button {
+  font-size: 14px;
+  height:40px;
+  border-radius: 8px;
+}
+
+</style>
 
 <body>
 
-<div>
-   <button type="button" onclick="scanNetwork();">Scan</button>
+<div style="margin-top:20px;margin-left:10px;margin-bottom:20px;border:2 px solid black;">
+   <button type="button" class="button" onclick="scanNetwork();">Scan</button>
 </div>
 
         <div id="textblock" style="margin: 0 auto;">
@@ -58,6 +92,7 @@ function scanNetwork()
 
 <script>
 window.onload = getUI();
+window.setInterval(getUI, 2000);
 </script>
 
 </html>

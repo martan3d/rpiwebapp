@@ -42,19 +42,26 @@ def drawBox(x, y, id, name, address, type, status):
         <rect
          fill="lightgray"
          style="stroke:black;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="scanbutton" width="400" height="100"
+         id="scanbutton" width="200" height="80"
          x="%s" y="%s" rx="6" ry="6"
-         onclick="javascript:scanNetwork();"
-        />''' % ( x, y)      #'''
+         onclick="javascript:getNode('%s');"
+        />''' % ( x, y, address)      #'''
 
-    data = data + '<text x="%s" y="%s" font-size="28" class="myfont" fill="black">' % (x+100, y+40)
+    data = data + '<text x="%s" y="%s" font-size="28" class="myfont" fill="black" ' % (x+10, y+30 )
+    data = data + 'onclick="javascript:getNode('
+    data = data + "'%s');" % address
+    data = data + '">'
     data = data + '%s' % name
     data = data + '</text>'
 
-    data = data + '<text x="%s" y="%s" font-size="22" class="myfont" fill="black">' % (x+100, y+80)
+    data = data + '<text x="%s" y="%s" font-size="22" class="myfont" fill="black" ' % (x+10, y+60)
+    data = data + 'onclick="javascript:getNode('
+    data = data + "'%s');" % address
+    data = data + '">'
     data = data + '%s' % address
     data = data + '</text>'
 
+    print data
 
     return data
 
@@ -68,3 +75,9 @@ def scannetwork():
 
     return NOP
 
+@main_api.route('/displaynode/', methods=['POST','GET'])
+def displayNode():
+    address = request.form['address']
+
+    print "displayNode"
+    return render_template('node.html', address=address)
