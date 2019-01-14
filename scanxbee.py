@@ -47,7 +47,6 @@ def insertNode(nodeid, address):
        sql = "INSERT INTO nodes (name, address, type, status) VALUES ('%s','%s','%s','%s') " % (nodeid, address, 'node', 'ok')
     cr.execute(sql)
     db.commit()
-    print sql
 
 def removeESC(data):
     rd = []
@@ -91,6 +90,9 @@ while(1):
             address = getAddress(data)
             insertNode(nodeid, address)
 
+       if msgtype == 137:
+          print "ACK"
+
        z = []
        for d in data:
            z.append(d)
@@ -116,11 +118,11 @@ while(1):
     if data != None:
        message = json.loads(base64.b64decode(data))
        cmd = message[0]
-       print "data from background to transmit", cmd
-       print data
+
        if cmd == 'SCAN':
           clearDatabase()
           Xbee.xbeeDataQuery('N','D')
+
        if cmd == 'READNODE':
           address = message[1]
           data    = message[2]
