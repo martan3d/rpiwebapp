@@ -101,6 +101,7 @@ class xbeeController:
 
     def xbeeTransmitDataFrame(self, dest, data):
         txdata = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        escframe = []
         i = 0              # data must be 20 bytes
         data = data[:20]   # truncate to 20 if needed
         for d in data:     # make sure it's in valid bytes for transmit
@@ -114,8 +115,8 @@ class xbeeController:
         escframe = []
         frame.append(0x7e)	# header
 	frame.append(0)	        # our data is always fixed size, 20 bytes of payload
-	frame.append(0x22)      # this is all data except header, length and checksum
-	frame.append(0x10)      # TRANSMIT REQUEST - send Query to Xbee module
+	frame.append(0x1f)      # this is all data except header, length and checksum
+	frame.append(0x00)      # TRANSMIT REQUEST - send Query to Xbee module
 	frame.append(0x01)      # frame ID for ack- 0 = disable
 
         frame.append(dest[0])   # 64 bit address (mac)
@@ -127,11 +128,7 @@ class xbeeController:
         frame.append(dest[6])
         frame.append(dest[7])
 
-        frame.append(0xff)      # always reserved in digimesh mode
-        frame.append(0xfe)
-
-        frame.append(0)         # broadcast radius (hops)
-        frame.append(0xc0)      # use digimesh protocol
+        frame.append(0x00)      # always reserved in digimesh mode
 
         txdata = txdata[:20]    # make sure we only use 20 bytes here
 
@@ -140,16 +137,23 @@ class xbeeController:
         frame.append(0)         # checksum position
 
 	cks = 0;
-	for i in range(3,37):	# compute checksum
+	for i in range(3,34):	# compute checksum
 	   cks += int(frame[i])
 
 	i = (255-cks) & 0x00ff
-        frame[37] = i
+        frame[34] = i
 
+        escframe.append(0x7e)   # start character
 
+        for i in range(1,35):   # escape character 7E 7D 11 13 but not first one
+            if frame[i] == 0x7e or frame[i] == 0x7d or frame[i] == 0x11 or frame[i] == 0x13:
+               escframe.append(0x7d)
+               escchar = frame[i] ^ 0x20
+               escframe.append(escchar)
+            else:
+               escframe.append(frame[i])
 
-
-
-	for i in range(0,38):	# send it out the serial port to the xbee
-            self.sp.write(chr(frame[i]))
+        l = len(escframe)
+        for i in range(0,l):    # send it out the serial port to the xbee
+            self.sp.write(chr(escframe[i]))
 

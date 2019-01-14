@@ -114,9 +114,23 @@ while(1):
 
     data = r.rpop(['queue:xbeetx'])
     if data != None:
-       print "data from background to transmit"
+       message = json.loads(base64.b64decode(data))
+       cmd = message[0]
+       print "data from background to transmit", cmd
        print data
-       if data == 'SCAN':
+       if cmd == 'SCAN':
           clearDatabase()
           Xbee.xbeeDataQuery('N','D')
-
+       if cmd == 'READNODE':
+          address = message[1]
+          data    = message[2]
+          dest    = [0,0,0,0,0,0,0,0]
+          dest[0] = int(address[:2], 16)
+          dest[1] = int(address[2:4], 16)
+          dest[2] = int(address[4:6], 16)
+          dest[3] = int(address[6:8], 16)
+          dest[4] = int(address[8:10], 16)
+          dest[5] = int(address[10:12], 16)
+          dest[6] = int(address[12:14], 16)
+          dest[7] = int(address[14:16], 16)
+          Xbee.xbeeTransmitDataFrame(dest, data)

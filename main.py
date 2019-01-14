@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, jsonify
 import MySQLdb
 import time
 import redis
+import base64
+import json
 
 main_api = Blueprint('main_api', __name__)
 
@@ -70,8 +72,9 @@ def drawBox(x, y, id, name, address, type, status):
 def scannetwork():
     print "push tx message code"
 
+    senddata = base64.b64encode(json.dumps(['SCAN', '0', '1']))
     r = redis.Redis(host='127.0.0.1', port='6379')
-    r.rpush(['queue:xbeetx'], 'SCAN' )
+    r.rpush(['queue:xbeetx'], senddata )
 
     return NOP
 
@@ -80,4 +83,8 @@ def displayNode():
     address = request.form['address']
 
     print "displayNode"
+    senddata = base64.b64encode(json.dumps(['READNODE', address, '01234567890123456789']))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
     return render_template('node.html', address=address)
