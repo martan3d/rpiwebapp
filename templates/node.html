@@ -3,10 +3,43 @@
 <head>
 </head>
 
+<style>
+
+.rcr {
+  font-family: Arial;
+  border-radius: 25px;
+  border: 1px solid black;
+  background: lightgray;
+  padding: 20px;
+  width: 400px;
+  height: 600px;
+}
+
+</style>
+
+
 <body>
 
-<h1>This is a node</h1>
-<h2>{{ address }}</h2>
+  <div class=rcr>
+    <h3 style="text-align:center">{{ address }}</h3>
+    <h3>Node ID<h3>
+    <h3>Mac Address {{ address}} </h3>
+    <h3>16 Bit Address ?</h3>
+    <br>
+    <h3>Protothrottle ID ?</h3>
+    <h3>Base ID ?</h3>
+    <br>
+    <h3>Widget Types (2)</h3>
+    <h3>Direct Control Widget</h3>
+DCC channel<br>
+Servo Settings<br>
+Servo Direction<br>
+Servo Limit lo<br>
+Servo Limit hi<br>
+<h3>Airwire Widget</h3>
+Channel
+  </div>
+
 </body>
 
 </html>

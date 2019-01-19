@@ -156,4 +156,8 @@ class xbeeController:
         l = len(escframe)
         for i in range(0,l):    # send it out the serial port to the xbee
             self.sp.write(chr(escframe[i]))
-
+        print "SENT"
+        for d in escframe:
+            p = "%x" % d
+            print p,
+        print
