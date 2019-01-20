@@ -119,7 +119,7 @@ while(1):
              print "Protothrottle Broadcast"
           if data[7] == 0:
              print "Return Message"
-
+             r.rpush(['queue:xbee'], base64.b64encode(json.dumps(data)) )
 
        if msgtype == 136:
           print "node discovery response"
@@ -139,16 +139,6 @@ while(1):
            p = "%x" % d
            print p,
        print
-
-       #TODO: decode and submit all data to database here if it is a response from ND
-       #      otherwise, extract the data response from a node and queue it
-
-#       z = []
-#       for d in data:
-#           z.append(ord(d))
-
-       # TDO: Ignore protothrottle broadcast here, don't push
-#TODO       r.rpush(['queue:xbee'], base64.b64encode(json.dumps(z)) )
 
 # check transmit queue here, if not empty, build the message and transmit it
 # this queue is populated from the webform, it pushes (redis queue) an ascii command, like 'SCAN' and this builds and transmits it

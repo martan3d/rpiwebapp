@@ -39,7 +39,7 @@ function scanNetwork()
    }
 }
 
-function getNode(id)
+function getNode(id, name)
 {
     var form = document.createElement("form");
     form.setAttribute("method", "post");
@@ -51,10 +51,20 @@ function getNode(id)
     hf.setAttribute("value", id);
     form.appendChild(hf);
 
+    hf = document.createElement("input");
+    hf.setAttribute("type", "hidden");
+    hf.setAttribute("name", "name");
+    hf.setAttribute("value", name);
+    form.appendChild(hf);
+
     document.body.appendChild(form);
     form.submit();
 }
 
+function setHome()
+{
+   window.location.assign = "/";
+}
 
 </script>
 <style>

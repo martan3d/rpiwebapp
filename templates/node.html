@@ -3,6 +3,34 @@
 <head>
 </head>
 
+<script>
+
+function getNode()
+{
+   var xhr;
+   var params = "0";
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/refreshnode/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           var element = document.getElementById('textblock');
+           element.innerHTML = xhr.responseText;
+       }
+   }
+}
+
+function setHome()
+{
+   window.location.href = "/";
+}
+
+</script>
+
 <style>
 
 .rcr {
@@ -11,8 +39,8 @@
   border: 1px solid black;
   background: lightgray;
   padding: 20px;
-  width: 400px;
-  height: 600px;
+  width: 300px;
+  height: 400px;
 }
 
 </style>
@@ -21,25 +49,18 @@
 <body>
 
   <div class=rcr>
-    <h3 style="text-align:center">{{ address }}</h3>
-    <h3>Node ID<h3>
-    <h3>Mac Address {{ address}} </h3>
-    <h3>16 Bit Address ?</h3>
-    <br>
-    <h3>Protothrottle ID ?</h3>
-    <h3>Base ID ?</h3>
-    <br>
-    <h3>Widget Types (2)</h3>
-    <h3>Direct Control Widget</h3>
-DCC channel<br>
-Servo Settings<br>
-Servo Direction<br>
-Servo Limit lo<br>
-Servo Limit hi<br>
-<h3>Airwire Widget</h3>
-Channel
-  </div>
+    <div style="font-size:24px;text-align:center">{{ name }}</div>
+    <div style="font-size:14px;text-align:center">{{ address }}</div>
+
+    <div style="margin:30px;"></div>
+
+    <div id="textblock" style="margin: 0 auto;">
+            &nbsp;
+    </div>
 
 </body>
-
+<script>
+window.onload = getNode();
+window.setInterval(getNode, 1000);
+</script>
 </html>
