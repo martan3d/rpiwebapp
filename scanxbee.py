@@ -146,7 +146,6 @@ while(1):
 
     data = r.rpop(['queue:xbeetx'])
     if data != None:
-       print "POPED TO SEND"
        message = json.loads(base64.b64decode(data))
        cmd = message[0]
 

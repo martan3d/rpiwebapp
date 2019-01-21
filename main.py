@@ -88,9 +88,7 @@ def displayNode():
 @main_api.route('/checkscan/', methods=['POST','GET'])
 def checkscan():
     global GLOB
-    print "return GLOB", GLOB
     return GLOB
-
 
 @main_api.route('/refreshnode/', methods=['POST','GET'])
 def refreshnode():
@@ -99,13 +97,13 @@ def refreshnode():
     rxdata = r.rpop(['queue:xbee'])
     if rxdata != None:
        GLOB = 'S'
-       print "set GLOB", GLOB
        message = json.loads(base64.b64decode(rxdata))
        nodetype = chr(message[9])
        addrproto = message[11]
        addrbase  = message[10]
        airchan   = message[12]
        dccaddr   = message[12]
+       decoder   = message[13]
 
        r.set("NodeType", nodetype)
        r.set("AddrProto", addrproto)
@@ -116,7 +114,7 @@ def refreshnode():
 
        if nodetype == 'W':   # Widget
           r.set("dccAddr", dccaddr)
-
+          r.set("decoder", decoder)
     else:
        nodetype  = r.get("NodeType")
        addrproto = r.get("AddrProto")
@@ -129,10 +127,10 @@ def refreshnode():
     data = '<div style="width:95%;margin:0 auto;">'
 
     if nodetype == 'W':
-       data = '<div style="font-size:20px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
+       data = '<div style="font-size:24px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
 
     if nodetype == 'A':
-       data = '<div style="font-size:20px;margin:20px;text-align:center;">Airwire Translator</div>'
+       data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
 
     data = data + '''
        <table style="margin-left:50px;">
@@ -144,8 +142,6 @@ def refreshnode():
     if nodetype == 'W':
        data = data + '''
        <td>DCC Address</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
-       <tr>
-       <td>Decoder Type</td><td><input style="text-align:center;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="decoder" value="TCSD"></td>
        '''
     if nodetype == 'A':
        data = data + '''
@@ -154,9 +150,27 @@ def refreshnode():
 
     data = data + '''
        </table>
-    </div>
-    <div style="text-align:center;margin-top:20px;">
-       <input type="button" onclick="setHome();" value="Home">
     </div>'''
+
+    if nodetype == 'W':
+       data = data + '''
+         <div style="font-size:22px;text-align:center;margin-top:20px;">'''
+
+       if decoder == 0:
+          data = data + 'TCSWow Diesel'
+       else:
+          data = data + 'unknown'
+
+       data = data + '''
+         </div>
+           <div style="text-align:center;margin-top:20px;">
+             <input class="mybutton" type="button" onclick="#" value="Edit">
+         </div>'''
+
+    data = data + '''
+     <div style="text-align:center;margin-top:40px;">
+        <input  class="mybutton" type="button" onclick="setHome();" value="Home">
+     </div>
+     '''
 
     return data
