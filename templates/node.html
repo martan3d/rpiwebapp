@@ -5,8 +5,41 @@
 
 <script>
 
+var myscan;
+var myflag = 0;
+
+function doScan()
+{
+   var xhr;
+   var params = "0";
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/checkscan/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           if (xhr.responseText == 'G') {
+               if (myflag == 0) {
+                   myscan = window.setInterval(getNode, 1000);
+                   myflag = 1;
+               }
+           }
+           if (xhr.responseText == 'S') {
+               window.clearInterval(myscan);
+               myflag = 0;
+           }
+       }
+   }
+}
+
+
 function getNode()
 {
+   doScan();
+
    var xhr;
    var params = "0";
    xhr = new XMLHttpRequest();
@@ -22,6 +55,7 @@ function getNode()
            element.innerHTML = xhr.responseText;
        }
    }
+
 }
 
 function setHome()
@@ -61,6 +95,6 @@ function setHome()
 </body>
 <script>
 window.onload = getNode();
-window.setInterval(getNode, 1000);
+window.onload = doScan();
 </script>
 </html>

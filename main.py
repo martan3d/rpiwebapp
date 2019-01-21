@@ -8,6 +8,7 @@ import json
 main_api = Blueprint('main_api', __name__)
 
 NOP = "sent"
+GLOB = 'G'
 
 # main entry point, used on load page
 @main_api.route('/main/', methods=['GET','POST'])
@@ -68,31 +69,37 @@ def drawBox(x, y, id, name, address, type, status):
 # find neighbors on the Network
 @main_api.route('/scannetwork/', methods=['POST', 'GET'])
 def scannetwork():
-    print "push tx message code"
-
     senddata = base64.b64encode(json.dumps(['SCAN', '0', '1']))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
-
     return NOP
 
 @main_api.route('/displaynode/', methods=['POST','GET'])
 def displayNode():
+    global GLOB
     address = request.form['address']
     name    = request.form['name']
-    print "displayNode"
     senddata = base64.b64encode(json.dumps(['READNODE', address, '01234567890123456789']))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
-
+    GLOB = 'G'
     return render_template('node.html', address=address, name=name)
+
+@main_api.route('/checkscan/', methods=['POST','GET'])
+def checkscan():
+    global GLOB
+    print "return GLOB", GLOB
+    return GLOB
+
 
 @main_api.route('/refreshnode/', methods=['POST','GET'])
 def refreshnode():
-
+    global GLOB
     r = redis.Redis(host='127.0.0.1', port='6379')
     rxdata = r.rpop(['queue:xbee'])
     if rxdata != None:
+       GLOB = 'S'
+       print "set GLOB", GLOB
        message = json.loads(base64.b64decode(rxdata))
        nodetype = chr(message[9])
        addrproto = message[11]
@@ -117,8 +124,6 @@ def refreshnode():
        dccaddr   = r.get("dccAddr")
        airchan   = r.get("airChan")
 
-    print "NODETYPE", nodetype
-
     # use redis variables below
 
     data = '<div style="width:95%;margin:0 auto;">'
@@ -131,18 +136,20 @@ def refreshnode():
 
     data = data + '''
        <table style="margin-left:50px;">
-       <td>ProtoThrottle ID</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:40px;padding-right:4px;" type="text" name="pid" value="0"></td>
+       <td>ProtoThrottle ID</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="pid" value="0"></td>
        <tr>
-       <td>Base ID</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:40px;padding-right:4px;" type="text" name="bid" value="A"></td>
+       <td>Base ID</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="bid" value="A"></td>
        <tr>'''
 
     if nodetype == 'W':
        data = data + '''
-       <td>DCC Address</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:40px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
+       <td>DCC Address</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
+       <tr>
+       <td>Decoder Type</td><td><input style="text-align:center;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="decoder" value="TCSD"></td>
        '''
     if nodetype == 'A':
        data = data + '''
-       <td>Airwire Channel</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:40px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
+       <td>Airwire Channel</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
        '''
 
     data = data + '''
