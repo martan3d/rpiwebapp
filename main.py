@@ -85,6 +85,18 @@ def displayNode():
     GLOB = 'G'
     return render_template('node.html', address=address, name=name)
 
+@main_api.route('/setcv/', methods=['POST','GET'])
+def setcv():
+    cvaddr = request.form['cvaddr']
+    cvdata = request.form['cvdata']
+
+    print cvaddr
+    print cvdata
+
+    return NOP
+
+
+
 @main_api.route('/checkscan/', methods=['POST','GET'])
 def checkscan():
     global GLOB
@@ -154,23 +166,19 @@ def refreshnode():
 
     if nodetype == 'W':
        data = data + '''
-         <div style="font-size:22px;text-align:center;margin-top:20px;">'''
-
-       if decoder == 0:
-          data = data + 'TCSWow Diesel'
-       else:
-          data = data + 'unknown'
-
-       data = data + '''
-         </div>
-           <div style="text-align:center;margin-top:20px;">
-             <input class="mybutton" type="button" onclick="#" value="Edit">
-         </div>'''
-
-    data = data + '''
-     <div style="text-align:center;margin-top:40px;">
-        <input  class="mybutton" type="button" onclick="setHome();" value="Home">
-     </div>
+         <div style="font-size:22px;text-align:center;margin-top:10px;">
+           <div style="text-align:center;margin-top:16px;">
+             <span style="position:block;font-size:10px;margin-right:28px;">CVaddr</span> <span style="position:block;font-size:10px;margin-right:62px;">CVdata</span>
+           </div>
+           <div style="text-align:center;margin-top:10px;">
+               <input type="text" id="cvaddr" style="width:54px;height:32px;font-size:20px;margin-right:8px;margin-left:8px;">
+               <input type="text" id="cvdata" style="width:54px;height:32px;font-size:20px;margin-right:8px;">
+               <input class="theButton" type="button" style="position:relative;top:50%;transform:translateY(-8%);" onclick="setCV();" value="Prg">
+           </div>
+           <div style="text-align:center;margin-top:40px;">
+             <input  class="mybutton" type="button" onclick="setHome();" value="Home">
+           </div>
+        </div>
      '''
 
     return data
