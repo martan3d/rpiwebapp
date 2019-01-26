@@ -87,14 +87,23 @@ def displayNode():
 
 @main_api.route('/setcv/', methods=['POST','GET'])
 def setcv():
-    cvaddr = request.form['cvaddr']
-    cvdata = request.form['cvdata']
+    cvaddr = int(request.form['cvaddr'])
+    cvdata = int(request.form['cvdata'])
+
+    lsb = cvaddr & 0x00ff
+    msb = cvaddr & 0xff00
+    msb = msb >> 8
+
+    DCCCVPACKET = 16
+    datapaylod = chr(DCCCVPACKET) + chr(lsb) + chr(msb) + chr(cvdata) + '4567890123456789'
+    senddata = base64.b64encode(json.dumps(['READNODE', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
 
     print cvaddr
     print cvdata
 
     return NOP
-
 
 
 @main_api.route('/checkscan/', methods=['POST','GET'])
@@ -110,6 +119,7 @@ def refreshnode():
     if rxdata != None:
        GLOB = 'S'
        message = json.loads(base64.b64decode(rxdata))
+       print "MAIN", message
        nodetype = chr(message[9])
        addrproto = message[11]
        addrbase  = message[10]
@@ -179,6 +189,12 @@ def refreshnode():
              <input  class="mybutton" type="button" onclick="setHome();" value="Home">
            </div>
         </div>
+     '''
+    if nodetype == 'A':
+       data = data + '''
+           <div style="text-align:center;margin-top:40px;">
+             <input  class="mybutton" type="button" onclick="setHome();" value="Home">
+           </div>
      '''
 
     return data
