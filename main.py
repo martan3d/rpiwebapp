@@ -87,21 +87,23 @@ def displayNode():
 
 @main_api.route('/setcv/', methods=['POST','GET'])
 def setcv():
+
     cvaddr = int(request.form['cvaddr'])
     cvdata = int(request.form['cvdata'])
+    address = request.form['address']
+
+    print cvaddr, cvdata, address
+
 
     lsb = cvaddr & 0x00ff
     msb = cvaddr & 0xff00
     msb = msb >> 8
 
     DCCCVPACKET = 16
-    datapaylod = chr(DCCCVPACKET) + chr(lsb) + chr(msb) + chr(cvdata) + '4567890123456789'
-    senddata = base64.b64encode(json.dumps(['READNODE', address, datapayload ]))
+    datapayload = chr(DCCCVPACKET) + chr(lsb) + chr(msb) + chr(cvdata) + '4567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETCV', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
-
-    print cvaddr
-    print cvdata
 
     return NOP
 

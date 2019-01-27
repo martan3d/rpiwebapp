@@ -62,9 +62,10 @@ function setCV()
 {
    var cvaddr = document.getElementById('cvaddr').value;
    var cvdata = document.getElementById('cvdata').value;
+   var macadd = document.getElementById('address').value;
 
    var xhr;
-   var params = "cvaddr="+cvaddr+"&cvdata="+cvdata;
+   var params = "cvaddr="+cvaddr+"&cvdata="+cvdata+"&address="+macadd;
    xhr = new XMLHttpRequest();
    xhr.onreadystatechange = handleStateChange;
    xhr.open("POST", '/setcv/', true);
@@ -157,6 +158,7 @@ function setHome()
   <div class=rcr>
     <div style="font-size:24px;text-align:center">{{ name }}</div>
     <div style="font-size:14px;text-align:center">{{ address }}</div>
+    <input type="hidden" id="address" value="{{address}}">
 
     <div style="margin:30px;"></div>
 
