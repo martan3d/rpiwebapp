@@ -87,13 +87,9 @@ def displayNode():
 
 @main_api.route('/setcv/', methods=['POST','GET'])
 def setcv():
-
     cvaddr = int(request.form['cvaddr'])
     cvdata = int(request.form['cvdata'])
     address = request.form['address']
-
-    print cvaddr, cvdata, address
-
 
     lsb = cvaddr & 0x00ff
     msb = cvaddr & 0xff00
@@ -102,6 +98,20 @@ def setcv():
     DCCCVPACKET = 16
     datapayload = chr(DCCCVPACKET) + chr(lsb) + chr(msb) + chr(cvdata) + '4567890123456789'
     senddata = base64.b64encode(json.dumps(['SETCV', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
+    return NOP
+
+@main_api.route('/setdcc/', methods=['POST','GET'])
+def setdcc():
+    print "SETDCC"
+    dccaddr = int(request.form['dccaddr'])
+    address = request.form['address']
+
+    SETDCCADDR = 40
+    datapayload = chr(SETDCCADDR) + chr(dccaddr) + '234567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
 
@@ -157,21 +167,35 @@ def refreshnode():
        data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
 
     data = data + '''
-       <table style="margin-left:50px;">
-       <td>ProtoThrottle ID</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="pid" value="0"></td>
+       <table style="margin-left:20px;">
+       <td>ProtoThrottle ID</td>
+       <td style="width:20px;"> &nbsp; </td>
+       <td style="width:44px;"><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="pid" value="0"></td>
+       <td><input class="pbutton" type="button" onclick="setProto();" value="P"></td>
        <tr>
-       <td>Base ID</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="bid" value="A"></td>
+       <td>Base ID</td>
+       <td> &nbsp; </td>
+       <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="bid" value="A"></td>
+       <td><input  class="pbutton" type="button" onclick="setBase();" value="P"></td>
        <tr>'''
 
     if nodetype == 'W':
        data = data + '''
-       <td>DCC Address</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
+       <td>Loco Address</td>
+       <td> &nbsp; </td>
+       <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="dccaddr" value="3"></td>
+       <td><input  class="pbutton" type="button" onclick="setAddr();" value="P"></td>
+       <tr>
+       <td>Consist</td>
+       <td><input type="checkbox" id="checkbox" onclick="setConsDir();"/></td>
+       <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="dccaddr" value="3"></td>
+       <td><input  class="pbutton" type="button" onclick="setConsist();" value="P"></td>
        '''
     if nodetype == 'A':
        data = data + '''
-       <td>Airwire Channel</td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" name="dccaddr" value="3"></td>
+       <td>Airwire Channel</td><td></td><td><input style="text-align:right;margin-left:40px;font-size:18px;width:50px;padding-right:4px;" type="text" id="airaddr" value="3"></td>
+       <td><input  class="pbutton" type="button" onclick="setAirwire();" value="P"></td>
        '''
-
     data = data + '''
        </table>
     </div>'''
@@ -187,14 +211,14 @@ def refreshnode():
                <input type="text" id="cvdata" style="width:54px;height:32px;font-size:20px;margin-right:8px;">
                <input class="theButton" type="button" style="position:relative;top:50%;transform:translateY(-8%);" onclick="setCV();" value="Prg">
            </div>
-           <div style="text-align:center;margin-top:40px;">
+           <div style="text-align:center;margin-top:20px;">
              <input  class="mybutton" type="button" onclick="setHome();" value="Home">
            </div>
         </div>
      '''
     if nodetype == 'A':
        data = data + '''
-           <div style="text-align:center;margin-top:40px;">
+           <div style="text-align:center;margin-top:20px;">
              <input  class="mybutton" type="button" onclick="setHome();" value="Home">
            </div>
      '''

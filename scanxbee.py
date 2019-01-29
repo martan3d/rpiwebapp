@@ -159,12 +159,20 @@ while(1):
           data    = message[2]
           txaddr  = buildAddress(address)
           data =  chr(RETURNTYPE) + data[1:]
+          print "READNODE"
           Xbee.xbeeTransmitDataFrame(txaddr, data)
 
        if cmd == 'SETCV':
-          print "TRANSMIT SETCV"
           address = message[1]
           data    = message[2]
           txaddr  = buildAddress(address)
           data =  chr(SETCV) + data[1:]
+          print "SETCV"
+          Xbee.xbeeTransmitDataFrame(txaddr, data)
+
+       if cmd == "SETDCC":
+          address = message[1]
+          data    = message[2]
+          txaddr  = buildAddress(address)
+          print "SETDCC"
           Xbee.xbeeTransmitDataFrame(txaddr, data)

@@ -79,10 +79,31 @@ function setCV()
            //element.innerHTML = xhr.responseText;
        }
    }
-
 }
 
 
+function setDCC()
+{
+   var dccaddr = document.getElementById('dccaddr').value;
+   var macadd = document.getElementById('address').value;
+
+   var xhr;
+   var params = "dccaddr="+dccaddr+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setdcc/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+
+}
 
 
 
@@ -140,7 +161,6 @@ function setHome()
         border-radius:6px;
         border:1px solid eeeeee;
         height:34px;
-//        display:inline-block;
         cursor:pointer;
         color:#555555;
         font-family:Arial;
@@ -150,6 +170,25 @@ function setHome()
         text-decoration:none;
         text-shadow:0px 1px 0px #ffffff;
 }
+
+.pButton {
+        background-color:#ededed;
+        -moz-border-radius:4px;
+        -webkit-border-radius:4px;
+        border-radius:4px;
+        border:1px solid eeeeee;
+        cursor:pointer;
+        height:28px;
+        color:#555555;
+        font-family:Arial;
+        font-size:15px;
+        font-weight:bold;
+        padding:0px 4px;
+        margin-left:8px;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #ffffff;
+}
+
 </style>
 
 
