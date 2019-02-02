@@ -36,12 +36,12 @@ function doScan()
 }
 
 
-function getNode()
+function getNode(address, name)
 {
    doScan();
 
    var xhr;
-   var params = "0";
+   var params = "address="+address;
    xhr = new XMLHttpRequest();
    xhr.onreadystatechange = handleStateChange;
    xhr.open("POST", '/refreshnode/', true);
@@ -82,10 +82,12 @@ function setCV()
 }
 
 
-function setDCC()
+function setMaster()
 {
    var dccaddr = document.getElementById('dccaddr').value;
    var macadd = document.getElementById('address').value;
+
+   alert(dccaddr + " " + macadd);
 
    var xhr;
    var params = "dccaddr="+dccaddr+"&address="+macadd;
@@ -105,6 +107,54 @@ function setDCC()
 
 }
 
+function setConsist()
+{
+   var consistaddr = document.getElementById('consistaddr').value;
+   var macadd = document.getElementById('address').value;
+
+   alert(consistaddr + " " + macadd);
+
+   var xhr;
+   var params = "consistaddr="+consistaddr+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setdcc/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+}
+
+function setConsDir()
+{
+   var consistdir = document.getElementById('direction').value;
+   var macadd = document.getElementById('address').value;
+
+   alert(consistdir + " " + macadd);
+
+   var xhr;
+   var params = "dccaddr="+dccaddr+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setdcc/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+
+}
 
 
 

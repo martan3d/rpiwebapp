@@ -126,6 +126,7 @@ def checkscan():
 @main_api.route('/refreshnode/', methods=['POST','GET'])
 def refreshnode():
     global GLOB
+    address = request.form['address']
     r = redis.Redis(host='127.0.0.1', port='6379')
     rxdata = r.rpop(['queue:xbee'])
     if rxdata != None:
@@ -158,13 +159,15 @@ def refreshnode():
 
     # use redis variables below
 
-    data = '<div style="width:95%;margin:0 auto;">'
+    data = '<div style="width:95%;margin:0 auto;">' 
 
     if nodetype == 'W':
        data = '<div style="font-size:24px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
 
     if nodetype == 'A':
        data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
+
+    data = data + '<input type="hidden" id="address" value="%s">' % address
 
     data = data + '''
        <table style="margin-left:20px;">
@@ -184,11 +187,11 @@ def refreshnode():
        <td>Loco Address</td>
        <td> &nbsp; </td>
        <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="dccaddr" value="3"></td>
-       <td><input  class="pbutton" type="button" onclick="setAddr();" value="P"></td>
+       <td><input  class="pbutton" type="button" id="dccaddr" onclick="setMaster();" value="P"></td>
        <tr>
        <td>Consist</td>
-       <td><input type="checkbox" id="checkbox" onclick="setConsDir();"/></td>
-       <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="dccaddr" value="3"></td>
+       <td><div id="direction" style="background-color:white;border:1px solid black;cursor:pointer;padding:2px;text-align:center;" onclick="setConsDir();"/> F </div> </td>
+       <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="consistaddr" value="3"></td>
        <td><input  class="pbutton" type="button" onclick="setConsist();" value="P"></td>
        '''
     if nodetype == 'A':
