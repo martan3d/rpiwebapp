@@ -112,13 +112,11 @@ function setConsist()
    var consistaddr = document.getElementById('consistaddr').value;
    var macadd = document.getElementById('address').value;
 
-   alert(consistaddr + " " + macadd);
-
    var xhr;
    var params = "consistaddr="+consistaddr+"&address="+macadd;
    xhr = new XMLHttpRequest();
    xhr.onreadystatechange = handleStateChange;
-   xhr.open("POST", '/setdcc/', true);
+   xhr.open("POST", '/setconsist/', true);
    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
    xhr.setRequestHeader("Content-length", params.length);
    xhr.setRequestHeader("Connection", "close");
@@ -136,13 +134,11 @@ function setConsDir()
    var consistdir = document.getElementById('direction').value;
    var macadd = document.getElementById('address').value;
 
-   alert(consistdir + " " + macadd);
-
    var xhr;
-   var params = "dccaddr="+dccaddr+"&address="+macadd;
+   var params = "consistdir="+consistdir+"&address="+macadd;
    xhr = new XMLHttpRequest();
    xhr.onreadystatechange = handleStateChange;
-   xhr.open("POST", '/setdcc/', true);
+   xhr.open("POST", '/setconsistdir/', true);
    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
    xhr.setRequestHeader("Content-length", params.length);
    xhr.setRequestHeader("Connection", "close");
@@ -156,8 +152,51 @@ function setConsDir()
 
 }
 
+function setProto()
+{
+   var protoaddr = document.getElementById('pid').value;
+   var macadd = document.getElementById('address').value;
 
+   var xhr;
+   var params = "protoaddr="+protoaddr+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setproto/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
 
+}
+
+function setBase()
+{
+   var baseaddr = document.getElementById('bid').value;
+   var macadd = document.getElementById('address').value;
+
+   var xhr;
+   var params = "baseaddr="+baseaddr+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setbase/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+
+}
 function setHome()
 {
    window.location.href = "/";

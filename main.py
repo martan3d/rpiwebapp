@@ -106,11 +106,78 @@ def setcv():
 @main_api.route('/setdcc/', methods=['POST','GET'])
 def setdcc():
     print "SETDCC"
-    dccaddr = int(request.form['dccaddr'])
+    adr = int(request.form['dccaddr'])
     address = request.form['address']
 
+    dccaddr = "%04s" % adr
+
     SETDCCADDR = 40
-    datapayload = chr(SETDCCADDR) + chr(dccaddr) + '234567890123456789'
+    datapayload = chr(SETDCCADDR) + dccaddr[0] + dccaddr[1] + dccaddr[2] + dccaddr[3] + '567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
+    return NOP
+
+@main_api.route('/setconsist/', methods=['POST','GET'])
+def setconsist():
+    print "SETCONSIST"
+    adr = int(request.form['consistaddr'])
+    address = request.form['address']
+
+    ca = "%04s" % adr
+
+    SETCONSISTADDR = 45
+    datapayload = chr(SETCONSISTADDR) + ca[0] + ca[1] + ca[2] + ca[3] + '567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
+    return NOP
+
+@main_api.route('/setconsistdir/', methods=['POST','GET'])
+def setconsistdir():
+    print "SETCONSISTDIR"
+
+    consistdir = int(request.form['consistdir'])
+    address = request.form['address']
+
+    SETCONSISTDIR = 46
+    datapayload = chr(SETCONSISTDIR) + chr(consistdir) + '234567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
+    return NOP
+
+@main_api.route('/setproto/', methods=['POST','GET'])
+def setproto():
+    print "SETPROTO"
+
+    protoaddr = int(request.form['protoaddr'])
+    address = request.form['address']
+
+    print protoaddr, address
+
+    SETPROTO = 39
+    datapayload = chr(SETPROTO) + chr(protoaddr) + '234567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
+    return NOP
+
+
+@main_api.route('/setbase/', methods=['POST','GET'])
+def setbase():
+    print "SETBASE"
+
+    baseaddr = ord(request.form['baseaddr'])
+    address = request.form['address']
+    print baseaddr, address
+
+    SETBASE = 38
+    datapayload = chr(SETBASE) + chr(baseaddr) + '234567890123456789'
     senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
@@ -159,7 +226,7 @@ def refreshnode():
 
     # use redis variables below
 
-    data = '<div style="width:95%;margin:0 auto;">' 
+    data = '<div style="width:95%;margin:0 auto;">'
 
     if nodetype == 'W':
        data = '<div style="font-size:24px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
@@ -190,7 +257,8 @@ def refreshnode():
        <td><input  class="pbutton" type="button" id="dccaddr" onclick="setMaster();" value="P"></td>
        <tr>
        <td>Consist</td>
-       <td><div id="direction" style="background-color:white;border:1px solid black;cursor:pointer;padding:2px;text-align:center;" onclick="setConsDir();"/> F </div> </td>
+       <td><div id="direction" style="background-color:white;border:1px solid black;cursor:pointer;padding:2px;text-align:center;" onclick="setConsDir();"/> F </div>
+       <input type="hidden" id="consistdir" value="F"></td>
        <td><input style="text-align:right;font-size:18px;width:50px;padding-right:4px;" type="text" id="consistaddr" value="3"></td>
        <td><input  class="pbutton" type="button" onclick="setConsist();" value="P"></td>
        '''
