@@ -1,6 +1,31 @@
 <html>
 
 <script>
+
+function getSize()
+{
+   var vwidth  = window.innerWidth;
+   var vheight = window.innerHeight;
+
+   var xhr;
+   var params = "width="+vwidth+"&height="+vheight;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setsize/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       //if (xhr.readyState == 4 &&  xhr.status == 200) {
+       //    var element = document.getElementById('textblock');
+       //    element.innerHTML = xhr.responseText;
+       //}
+   }
+}
+
+
+
 function getUI()
 {
    var xhr;
@@ -69,6 +94,41 @@ function setHome()
 </script>
 <style>
 
+body
+{
+  padding: 30px;
+  background-color: #fcfcfc;  
+}
+
+.theButton {
+        background-color:#ededed;
+        -moz-border-radius:6px;
+        -webkit-border-radius:6px;
+        border-radius:6px;
+        border:1px solid eeeeee;
+        height:58px;
+        width:420px;
+        cursor:pointer;
+        background-color:#bbbbbb;
+        font-family:Arial;
+        font-size:15px;
+        font-weight:bold;
+        padding-bottom:0px;
+        margin-bottom:20px;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #ffffff;
+
+
+ .center-div
+ {
+   margin: 0 auto;
+   max-width: 700px;
+   height: 100px;
+   background-color: #ccc;
+   border-radius: 8px;
+ }
+
+
 a.menu_links {
     cursor: pointer;
 }
@@ -82,14 +142,14 @@ text { cursor: pointer; }
   border-radius: 8px;
 }
 
+
 </style>
 
 <body>
 
-<div style="margin-top:20px;margin-left:10px;margin-bottom:20px;border:2 px solid black;">
-   <button type="button" class="button" onclick="scanNetwork();">Scan</button>
+<div style="text-align:center;">
+   <button type="button" class="theButton" style="font-size:32px;" onclick="scanNetwork();">Scan</button>
 </div>
-
         <div id="textblock" style="margin: 0 auto;">
             &nbsp;
         </div>
@@ -99,6 +159,7 @@ text { cursor: pointer; }
 <script>
 window.onload = getUI();
 window.setInterval(getUI, 2000);
+window.onload = getSize();
 </script>
 
 </html>

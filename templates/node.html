@@ -8,6 +8,18 @@
 var myscan;
 var myflag = 0;
 
+function zoom() {
+
+  var viewport = document.querySelector('meta[name="viewport"]');
+
+  if ( viewport ) {
+    viewport.content = "initial-scale=0.1";
+    viewport.content = "width=300";
+  }
+}
+
+
+
 function doScan()
 {
    var xhr;
@@ -206,14 +218,29 @@ function setHome()
 
 <style>
 
+body {
+   font-family:Arial;
+   background-color:#bbbbbb;
+}
+
+.myinput {
+  text-align:right;
+  font-size:18px;
+  width:50px;
+  height:34px;
+  padding-right:4px;
+  border-radius:6px;
+  margin-bottom:4px;
+}
+
 .rcr {
   font-family: Arial;
   border-radius: 25px;
   border: 1px solid black;
   background: #bbbbbb;
   padding: 20px;
-  width: 300px;
-  height: 400px;
+  width: 80%;
+  height: 520px;
 }
 
 .myButton {
@@ -283,7 +310,7 @@ function setHome()
 
 <body>
 
-  <div class=rcr>
+  <div>
     <div style="font-size:24px;text-align:center">{{ name }}</div>
     <div style="font-size:14px;text-align:center">{{ address }}</div>
     <input type="hidden" id="address" value="{{address}}">
@@ -298,5 +325,6 @@ function setHome()
 <script>
 window.onload = getNode();
 window.onload = doScan();
+document.body.style.zoom = 2.0
 </script>
 </html>
