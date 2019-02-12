@@ -99,8 +99,6 @@ function setMaster()
    var dccaddr = document.getElementById('dccaddr').value;
    var macadd = document.getElementById('address').value;
 
-   alert(dccaddr + " " + macadd);
-
    var xhr;
    var params = "dccaddr="+dccaddr+"&address="+macadd;
    xhr = new XMLHttpRequest();
@@ -311,7 +309,7 @@ body {
 <body>
 
   <div>
-    <div style="font-size:24px;text-align:center">{{ name }}</div>
+    <div style="font-size:36px;text-align:center">{{ name }}</div>
     <div style="font-size:14px;text-align:center">{{ address }}</div>
     <input type="hidden" id="address" value="{{address}}">
 
