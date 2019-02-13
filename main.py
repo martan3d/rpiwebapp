@@ -12,6 +12,15 @@ GLOB = 'G'
 HEIGHT = 0
 WIDTH = 0
 
+protad = { 'A': 0x30, 'B': 0x31, 'C': 0x32, 'D': 0x33, 'E': 0x34, 'F': 0x35, 'G': 0x36, 'H': 0x37, 'I': 0x38,
+           'J': 0x39, 'K': 0x3a, 'L': 0x3b, 'M': 0x3c, 'N': 0x3d, 'O': 0x3e, 'P': 0x3f,
+           'Q': 0x40, 'R': 0x41, 'S': 0x42, 'T': 0x43, 'U': 0x44, 'V': 0x45, 'W': 0x46, 'X': 0x47, 'Y': 0x48, 'Z': 0x49 }
+
+adprot = { 0x30 :'A', 0x31 :'B', 0x32 :'C', 0x33 :'D', 0x34 :'E', 0x35 :'F', 0x36 : 'G', 0x37 : 'H', 0x38 : 'I', 0x39 : 'J',
+           0x3a : 'K', 0x3b : 'L', 0x3c : 'M', 0x3d : 'N', 0x3e : 'O', 0x3f : 'P', 0x40 : 'Q', 0x41 : 'R', 0x42 : 'S',
+           0x43 : 'T', 0x44 : 'U', 0x45 : 'V', 0x46 : 'W', 0x47 : 'X', 0x48 : 'Y', 0x49 : 'Z' }
+
+
 @main_api.route('/setsize/', methods=['GET','POST'])
 def setsize():
     global HEIGHT
@@ -34,7 +43,6 @@ def main():
     sql = "SELECT * from nodes;"
     cr.execute(sql)
     results = cr.fetchall()
-
     return render_template('main.html', results=results)
 
 
@@ -128,29 +136,35 @@ def setconsist():
 @main_api.route('/setconsistdir/', methods=['POST','GET'])
 def setconsistdir():
     print "SETCONSISTDIR"
-
     consistdir = int(request.form['consistdir'])
     address = request.form['address']
-
     SETCONSISTDIR = 46
     datapayload = chr(SETCONSISTDIR) + chr(consistdir) + '234567890123456789'
     senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
-
     return NOP
 
 @main_api.route('/setproto/', methods=['POST','GET'])
 def setproto():
     print "SETPROTO"
 
-    protoaddr = int(request.form['protoaddr'])
+    protoaddr = request.form['protoaddr']
     address = request.form['address']
 
-    print protoaddr, address
+    # proto = A-Z, encode to 0x30 to 0x49, discard if not that range
+
+    if len(protoaddr) > 1:
+       return NOP
+
+    try:
+       pa = protad[protoaddr]
+    except:
+       print "bad data"
+       return NOP
 
     SETPROTO = 39
-    datapayload = chr(SETPROTO) + chr(protoaddr) + '234567890123456789'
+    datapayload = chr(SETPROTO) + chr(pa) + '234567890123456789'
     senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
@@ -162,7 +176,7 @@ def setproto():
 def setbase():
     print "SETBASE"
 
-    baseaddr = ord(request.form['baseaddr'])
+    baseaddr = int(str(request.form['baseaddr']), 16)
     address = request.form['address']
     print baseaddr, address
 
@@ -190,12 +204,39 @@ def refreshnode():
        GLOB = 'S'
        message = json.loads(base64.b64decode(rxdata))
        print "MAIN", message
-       nodetype = chr(message[9])
-       addrproto = message[11]
-       addrbase  = message[10]
-       airchan   = message[12]
-       dccaddr   = message[12]
-       decoder   = message[13]
+       nodetype    = chr(message[9])
+       addrbase    = message[10]
+       addrproto   = message[11]
+       airchan     = message[12]
+       dccaddr     = message[12]
+       decoder     = message[13]
+       consistaddr = message[14]
+       ch          = message[15] << 8
+       consistaddr = consistaddr | ch
+       consistdir  = message[16]
+
+       svlo0       = message[17]
+       ch          = message[18] << 8
+       svlo0       = svlo0 | ch
+
+       svhi0       = message[19]
+       ch          = message[20] << 8
+       svhi0       = svhi0 | ch
+
+       svlo1       = message[21]
+       ch          = message[22] << 8
+       svlo1       = svlo1 | ch
+
+       svhi1       = message[23]
+       ch          = message[24] << 8
+       svhi1       = svhi1 | ch
+
+       r.set("ConsistAddress", consistaddr)
+       r.set("ConsistDirection", consistdir)
+       r.set("Servo0LowLim", svlo0)
+       r.set("Servo0HighLim", svhi0)
+       r.set("Servo1LowLim", svlo1)
+       r.set("Servo1HighLim", svhi1)
 
        r.set("NodeType", nodetype)
        r.set("AddrProto", addrproto)
@@ -213,6 +254,12 @@ def refreshnode():
        addrbase  = r.get("AddrBase")
        dccaddr   = r.get("dccAddr")
        airchan   = r.get("airChan")
+       consistaddr = r.get("ConsistAddress")
+       consistdir  = r.get("ConsistDirection")
+       servolo0    = r.get("Servo0LowLim")
+       servohi0    = r.get("Servo0HighLim")
+       servolo1    = r.get("Servo1LowLim")
+       servohi1    = r.get("Servo1HighLim")
 
     # use redis variables below
 
@@ -230,14 +277,26 @@ def refreshnode():
        <table align=center id="table1">
 
        <td>ProtoThrottle ID</td>
-       <td style="width:20px;"> &nbsp; </td><td></td>
-       <td style="width:44px;"><input class="myinput" type="text" id="pid" value="0"></td>
+       <td style="width:20px;"> &nbsp; </td><td></td>'''
+
+    try:
+       adr = adprot[int(addrproto)]
+    except:
+       adr = 0
+       print 'addr decode bad', addrproto, adprot
+
+    data = data + '''
+       <td style="width:44px;"><input class="myinput" type="text" id="pid" value="%s"></td>''' % adr
+    data = data + '''
        <td><input class="theButton" type="button" onclick="setProto();" value="Prg"></td>
        <tr>
 
        <td>Base ID</td>
-       <td> &nbsp; </td><td></td>
-       <td><input class="myinput" type="text" id="bid" value="A"></td>
+       <td> &nbsp; </td><td></td>'''
+
+    data = data + '''
+       <td><input class="myinput" type="text" id="bid" value="%s"></td>''' % addrbase
+    data = data + '''
        <td><input  class="theButton" type="button" onclick="setBase();" value="Prg"></td>
        <tr>
 
