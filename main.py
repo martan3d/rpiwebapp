@@ -84,8 +84,13 @@ def displayNode():
 
 @main_api.route('/setcv/', methods=['POST','GET'])
 def setcv():
-    cvaddr = int(request.form['cvaddr'])
-    cvdata = int(request.form['cvdata'])
+
+    try:
+       cvaddr = int(request.form['cvaddr'])
+       cvdata = int(request.form['cvdata'])
+    except:
+       return NOP
+
     address = request.form['address']
 
     lsb = cvaddr & 0x00ff
@@ -102,7 +107,7 @@ def setcv():
 
 @main_api.route('/setdcc/', methods=['POST','GET'])
 def setdcc():
-    print "SETDCC"
+    print "SETLOCOADDRESS"
     adr = int(request.form['dccaddr'])
     address = request.form['address']
 
@@ -175,8 +180,14 @@ def setproto():
 @main_api.route('/setbase/', methods=['POST','GET'])
 def setbase():
     print "SETBASE"
+    try:
+       baseaddr = int(str(request.form['baseaddr']))
+    except:
+       return NOP
 
-    baseaddr = int(str(request.form['baseaddr']), 16)
+    if baseaddr > 31 or baseaddr < 0:
+       return NOP
+
     address = request.form['address']
     print baseaddr, address
 
@@ -203,16 +214,20 @@ def refreshnode():
     if rxdata != None:
        GLOB = 'S'
        message = json.loads(base64.b64decode(rxdata))
-       print "MAIN", message
+       print "GOT RESPONSE", message
        nodetype    = chr(message[9])
        addrbase    = message[10]
        addrproto   = message[11]
        airchan     = message[12]
-       dccaddr     = message[12]
-       decoder     = message[13]
+
+       locoaddr    = message[12]
+       ch          = message[13] << 8
+       locoaddr    = locoaddr | ch
+
        consistaddr = message[14]
        ch          = message[15] << 8
        consistaddr = consistaddr | ch
+
        consistdir  = message[16]
 
        svlo0       = message[17]
@@ -246,14 +261,14 @@ def refreshnode():
           r.set("airChan", airchan)
 
        if nodetype == 'W':   # Widget
-          r.set("dccAddr", dccaddr)
-          r.set("decoder", decoder)
+          r.set("locoAddr", locoaddr)
     else:
        nodetype  = r.get("NodeType")
        addrproto = r.get("AddrProto")
        addrbase  = r.get("AddrBase")
-       dccaddr   = r.get("dccAddr")
+       locoaddr  = r.get("locoAddr")
        airchan   = r.get("airChan")
+
        consistaddr = r.get("ConsistAddress")
        consistdir  = r.get("ConsistDirection")
        servolo0    = r.get("Servo0LowLim")
@@ -301,14 +316,27 @@ def refreshnode():
        <tr>
 
        <td>Loco Address</td>
-       <td> &nbsp; </td><td></td>
-       <td><input class="myinput" type="text" id="dccaddr" value="3"></td>
-       <td><input  class="theButton" type="button" id="dccaddr" onclick="setMaster();" value="Prg"></td>
-       <tr>
+       <td> &nbsp; </td><td></td>'''
 
-       <td>Consist</td><td></td>
-       <td><input type="text" id="consistdir" class="myinput" value="Off"></td>
-       <td><input class="myinput" type="text" id="consistaddr" value="3"></td>
+    data = data + '''
+       <td><input class="myinput" type="text" id="dccaddr" value="%s"></td>''' % str(locoaddr)
+
+    data = data + '''
+      <td><input  class="theButton" type="button" id="dccaddr" onclick="setMaster();" value="Prg"></td>
+       <tr>
+       <td>Consist</td><td></td>'''
+
+    consist = 'OFF'
+    if consistdir == 1: consist = 'FWD'
+    if consistdir == 2: consist = 'REV'
+
+    data = data + '''
+       <td><div style="cursor:pointer;border:1px solid #666666;border-radius:4px;height:22px;text-align:center;padding-top:6px;" onclick="toggleConstDir();">%s</div></td>''' % consist
+
+    data = data + '''
+       <td><input class="myinput" type="text" id="consistaddr" value="%s"></td>''' % consistaddr
+
+    data = data + '''
        <td><input class="theButton" type="button" onclick="setConsist();" value="Prg"></td>
        <tr>
 
@@ -325,14 +353,14 @@ def refreshnode():
        <td style="font-size:10px;text-align:center;">LoLim</td><td style="font-size:10px;text-align:center;">HiLim</td>
        <tr>
        <td>Servo 0</td><td><input type="checkbox"></td>
-       <td><input type="text" id="slo0" class="myinput"></td>
-       <td><input type="text" id="shi0" class="myinput"></td>
+       <td><input type="text" id="slo0" class="myinput" value="0"></td>
+       <td><input type="text" id="shi0" class="myinput" value="1000"></td>
        <td><input class="theButton" type="button" onclick="setServo(0);" value="Prg"></td>
        <tr>
 
        <td>Servo 1</td><td><input type="checkbox"></td>
-       <td><input type="text" id="slo1" class="myinput"></td>
-       <td><input type="text" id="shi1" class="myinput"></td>
+       <td><input type="text" id="slo1" class="myinput" value="0"></td>
+       <td><input type="text" id="shi1" class="myinput" value="1000"></td>
        <td><input class="theButton" type="button" onclick="setServo(1);" value="Prg"></td>
        <tr>
 
