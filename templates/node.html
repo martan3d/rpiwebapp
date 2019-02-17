@@ -19,6 +19,36 @@ function zoom() {
 }
 
 
+function setServo(servo)
+{
+   var lolim = 'slo'+servo;
+   var hilim = 'shi'+servo;
+   var rv = 'ck'+servo;
+
+   var lolimit = document.getElementById(lolim).value;
+   var hilimit = document.getElementById(hilim).value;
+   var reverse = document.getElementById(rv).checked;
+   var macaddr = document.getElementById('address').value;
+
+//   alert(lolimit + ' ' + hilimit + ' ' + reverse + ' ' + macaddr);
+
+   var xhr;
+   var params = "servonum="+servo+"&lolimit="+lolimit+"&hilimit="+hilimit+"&reverse="+reverse+"&address="+macaddr;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setservo/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+}
+
 
 function doScan()
 {
@@ -141,8 +171,24 @@ function setConsist()
 
 function setConsDir()
 {
-   var consistdir = document.getElementById('direction').value;
+   var consistdir = document.getElementById('cdir').innerHTML;
    var macadd = document.getElementById('address').value;
+
+   switch (consistdir)
+    {
+      case 'OFF':
+           consistdir = 'FWD';
+           break;
+      case 'FWD':
+           consistdir = 'REV';
+           break;
+      case 'REV':
+           consistdir = 'OFF';
+           break;
+    }
+
+    var element = document.getElementById('cdir');
+    element.innerHTML = consistdir;
 
    var xhr;
    var params = "consistdir="+consistdir+"&address="+macadd;
@@ -155,8 +201,8 @@ function setConsDir()
    xhr.send(params);
    function handleStateChange() {
        if (xhr.readyState == 4 &&  xhr.status == 200) {
-           //var element = document.getElementById('textblock');
-           //element.innerHTML = xhr.responseText;
+//           var element = document.getElementById('cdir');
+//           element.innerHTML = xhr.responseText;
        }
    }
 
@@ -309,7 +355,7 @@ body {
 <body>
 
   <div>
-    <div style="font-size:36px;text-align:center">{{ name }}</div>
+    <div style="font-size:36px;text-align:center;margin-top:20px;">{{ name }}</div>
     <div style="font-size:14px;text-align:center">{{ address }}</div>
     <input type="hidden" id="address" value="{{address}}">
 

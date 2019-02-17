@@ -82,6 +82,37 @@ def displayNode():
     GLOB = 'G'
     return render_template('node.html', address=address, name=name, x=mx, y=my)
 
+
+##########################################################################
+@main_api.route('/setservo/', methods=['POST','GET'])
+def setservo():
+    print "SETServo"
+    servonum = request.form['servonum']
+    servohi  = request.form['hilimit']
+    servolo  = request.form['lolimit']
+    servorev = request.form['reverse']
+    address  = request.form['address']
+
+    shigh = "0000" + servohi
+    shigh = shigh[-4:]
+
+    slow  = "0000" + servolo
+    slow = slow[-4:]
+
+    if servorev == 'true': sr = '1'
+    else: sr = '0'
+
+    SETSERVOCONFIG = 47
+    datapayload = chr(SETSERVOCONFIG) + servonum + shigh[0] + shigh[1] + shigh[2] + shigh[3] + slow[0] + slow[1] + slow[2] + slow[3] + sr + '123456789'
+    print datapayload
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
+
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+
+    return NOP
+
+
 @main_api.route('/setcv/', methods=['POST','GET'])
 def setcv():
 
@@ -141,10 +172,18 @@ def setconsist():
 @main_api.route('/setconsistdir/', methods=['POST','GET'])
 def setconsistdir():
     print "SETCONSISTDIR"
-    consistdir = int(request.form['consistdir'])
+    consistdir = request.form['consistdir']
     address = request.form['address']
+    cd = 0
+    if consistdir == 'OFF':
+       cd = 0
+    if consistdir == 'FWD':
+       cd = 1
+    if consistdir == 'REV':
+       cd = 2
+
     SETCONSISTDIR = 46
-    datapayload = chr(SETCONSISTDIR) + chr(consistdir) + '234567890123456789'
+    datapayload = chr(SETCONSISTDIR) + chr(cd) + '234567890123456789'
     senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
@@ -208,6 +247,7 @@ def checkscan():
 @main_api.route('/refreshnode/', methods=['POST','GET'])
 def refreshnode():
     global GLOB
+    print "REFRESH NODE"
     address = request.form['address']
     r = redis.Redis(host='127.0.0.1', port='6379')
     rxdata = r.rpop(['queue:xbee'])
@@ -228,7 +268,7 @@ def refreshnode():
        ch          = message[15] << 8
        consistaddr = consistaddr | ch
 
-       consistdir  = message[16]
+       cdir        = message[16]
 
        svlo0       = message[17]
        ch          = message[18] << 8
@@ -246,8 +286,11 @@ def refreshnode():
        ch          = message[24] << 8
        svhi1       = svhi1 | ch
 
+       svrr        = message[25]
+       print 'svrr', svrr
+
        r.set("ConsistAddress", consistaddr)
-       r.set("ConsistDirection", consistdir)
+       r.set("ConsistDirection", cdir)
        r.set("Servo0LowLim", svlo0)
        r.set("Servo0HighLim", svhi0)
        r.set("Servo1LowLim", svlo1)
@@ -256,6 +299,7 @@ def refreshnode():
        r.set("NodeType", nodetype)
        r.set("AddrProto", addrproto)
        r.set("AddrBase", addrbase)
+       r.set("ServoReverse", svrr)
 
        if nodetype == 'A':   # airwire
           r.set("airChan", airchan)
@@ -270,11 +314,12 @@ def refreshnode():
        airchan   = r.get("airChan")
 
        consistaddr = r.get("ConsistAddress")
-       consistdir  = r.get("ConsistDirection")
-       servolo0    = r.get("Servo0LowLim")
-       servohi0    = r.get("Servo0HighLim")
-       servolo1    = r.get("Servo1LowLim")
-       servohi1    = r.get("Servo1HighLim")
+       cdir        = r.get("ConsistDirection")
+       svlo0       = r.get("Servo0LowLim")
+       svhi0       = r.get("Servo0HighLim")
+       svlo1       = r.get("Servo1LowLim")
+       svhi1       = r.get("Servo1HighLim")
+       svrr        = r.get("ServoReverse")
 
     # use redis variables below
 
@@ -327,17 +372,47 @@ def refreshnode():
        <td>Consist</td><td></td>'''
 
     consist = 'OFF'
-    if consistdir == 1: consist = 'FWD'
-    if consistdir == 2: consist = 'REV'
+    if cdir == '1': consist = 'FWD'
+    if cdir == '2': consist = 'REV'
 
     data = data + '''
-       <td><div style="cursor:pointer;border:1px solid #666666;border-radius:4px;height:22px;text-align:center;padding-top:6px;" onclick="toggleConstDir();">%s</div></td>''' % consist
+       <td><div id="cdir" style="cursor:pointer;border:1px solid #666666;border-radius:4px;height:22px;text-align:center;padding-top:6px;" onclick="setConsDir();">%s</div></td>''' % consist
 
     data = data + '''
        <td><input class="myinput" type="text" id="consistaddr" value="%s"></td>''' % consistaddr
 
+    checked = ''
+    if (int(svrr) & 0x01) == 1:
+        checked = 'checked'
+
     data = data + '''
        <td><input class="theButton" type="button" onclick="setConsist();" value="Prg"></td>
+       <tr>
+
+       <td> &nbsp; </td><td style="font-size:10px;">Rev</td>
+       <td style="font-size:10px;text-align:center;">LoLim</td><td style="font-size:10px;text-align:center;">HiLim</td>
+       <tr>
+       <td>Servo 0</td><td><input id="ck0" type="checkbox" %s></td>''' % checked
+
+    data = data + '''
+       <td><input type="text" id="slo0" class="myinput" value="%s"></td>
+       <td><input type="text" id="shi0" class="myinput" value="%s"></td>''' % (svlo0, svhi0)
+
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setServo(0);" value="Prg"></td>
+       <tr>'''
+
+    checked = ''
+    if (int(svrr) & 0x02) == 2:
+        checked = 'checked'
+
+    data = data + '''
+       <td>Servo 1</td><td><input id="ck1" type="checkbox" %s></td>
+       <td><input type="text" id="slo1" class="myinput" value="%s"></td>
+       <td><input type="text" id="shi1" class="myinput" value="%s"></td>''' % (checked, svlo1, svhi1)
+
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setServo(1);" value="Prg"></td>
        <tr>
 
        <td> &nbsp; </td><td></td>
@@ -349,20 +424,6 @@ def refreshnode():
        <td><input class="theButton" type="button" onclick="setCV();" value="Prg"></td>
        <tr>
 
-       <td> &nbsp; </td><td style="font-size:10px;">Rev</td>
-       <td style="font-size:10px;text-align:center;">LoLim</td><td style="font-size:10px;text-align:center;">HiLim</td>
-       <tr>
-       <td>Servo 0</td><td><input type="checkbox"></td>
-       <td><input type="text" id="slo0" class="myinput" value="0"></td>
-       <td><input type="text" id="shi0" class="myinput" value="1000"></td>
-       <td><input class="theButton" type="button" onclick="setServo(0);" value="Prg"></td>
-       <tr>
-
-       <td>Servo 1</td><td><input type="checkbox"></td>
-       <td><input type="text" id="slo1" class="myinput" value="0"></td>
-       <td><input type="text" id="shi1" class="myinput" value="1000"></td>
-       <td><input class="theButton" type="button" onclick="setServo(1);" value="Prg"></td>
-       <tr>
 
        </table>
 
