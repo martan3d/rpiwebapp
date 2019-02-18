@@ -116,20 +116,19 @@ def setservo():
 @main_api.route('/setcv/', methods=['POST','GET'])
 def setcv():
 
-    try:
-       cvaddr = int(request.form['cvaddr'])
-       cvdata = int(request.form['cvdata'])
-    except:
-       return NOP
+    cvaddr = request.form['cvaddr']
+    cvdata = request.form['cvdata']
+
+    cva = "0000" + cvaddr
+    cvad = cva[-4:]
+
+    cvd  = "0000" + cvdata
+    cvda = cvd[-4:]
 
     address = request.form['address']
 
-    lsb = cvaddr & 0x00ff
-    msb = cvaddr & 0xff00
-    msb = msb >> 8
-
     DCCCVPACKET = 16
-    datapayload = chr(DCCCVPACKET) + chr(lsb) + chr(msb) + chr(cvdata) + '4567890123456789'
+    datapayload = chr(DCCCVPACKET) + cvad[0] + cvad[1] + cvad[2] + cvad[3] + cvda[0] + cvda[1] + cvda[2] + cvda[3] +'90123456789'
     senddata = base64.b64encode(json.dumps(['SETCV', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
@@ -232,6 +231,7 @@ def setbase():
 
     SETBASE = 38
     datapayload = chr(SETBASE) + chr(baseaddr) + '234567890123456789'
+    print datapayload
     senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
@@ -256,7 +256,7 @@ def refreshnode():
        message = json.loads(base64.b64decode(rxdata))
        print "GOT RESPONSE", message
        nodetype    = chr(message[9])
-       addrbase    = message[10]
+       addrbase    = int(message[10])
        addrproto   = message[11]
        airchan     = message[12]
 
