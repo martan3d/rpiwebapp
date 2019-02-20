@@ -169,6 +169,43 @@ function setConsist()
    }
 }
 
+function setServoMode()
+{
+   var servomode = document.getElementById('smode').innerHTML;
+   var macadd = document.getElementById('address').value;
+
+   switch (servomode)
+    {
+      case 'Steam':
+           servomode = 'Couplers';
+           break;
+      case 'Couplers':
+           servomode = 'Steam';
+           break;
+    }
+
+    var element = document.getElementById('smode');
+    element.innerHTML = servomode;
+
+    var xhr;
+    var params = "servomode="+servomode+"&address="+macadd;
+    xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = handleStateChange;
+    xhr.open("POST", '/setservomode/', true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.setRequestHeader("Content-length", params.length);
+    xhr.setRequestHeader("Connection", "close");
+    xhr.send(params);
+    function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+
+}
+
+
 function setConsDir()
 {
    var consistdir = document.getElementById('cdir').innerHTML;

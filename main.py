@@ -152,6 +152,7 @@ def setdcc():
 
     return NOP
 
+
 @main_api.route('/setconsist/', methods=['POST','GET'])
 def setconsist():
     print "SETCONSIST"
@@ -187,6 +188,29 @@ def setconsistdir():
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
     return NOP
+
+@main_api.route('/setservomode/', methods=['POST','GET'])
+def setservomode():
+    print "SETSERVOMODE"
+    servomode = request.form['servomode']
+    address = request.form['address']
+
+    print servomode
+
+    sm = 0
+    if servomode == 'Steam':
+       sm = 0
+    if servomode == 'Couplers':
+       sm = 1
+
+    SETSERVOMODE = 48
+    datapayload = chr(SETSERVOMODE) + chr(sm) + '234567890123456789'
+    senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    return NOP
+
+
 
 @main_api.route('/setproto/', methods=['POST','GET'])
 def setproto():
@@ -287,7 +311,9 @@ def refreshnode():
        svhi1       = svhi1 | ch
 
        svrr        = message[25]
-       print 'svrr', svrr
+       servomode   = message[26]
+
+       print "SERVOMODE", servomode
 
        r.set("ConsistAddress", consistaddr)
        r.set("ConsistDirection", cdir)
@@ -300,6 +326,7 @@ def refreshnode():
        r.set("AddrProto", addrproto)
        r.set("AddrBase", addrbase)
        r.set("ServoReverse", svrr)
+       r.set("ServoMode", servomode)
 
        if nodetype == 'A':   # airwire
           r.set("airChan", airchan)
@@ -320,6 +347,7 @@ def refreshnode():
        svlo1       = r.get("Servo1LowLim")
        svhi1       = r.get("Servo1HighLim")
        svrr        = r.get("ServoReverse")
+       servomode   = r.get("ServoMode")
 
     # use redis variables below
 
@@ -387,6 +415,30 @@ def refreshnode():
 
     data = data + '''
        <td><input class="theButton" type="button" onclick="setConsist();" value="Prg"></td>
+       <tr>'''
+
+    data = data + '''
+       <td> &nbsp; </td><td></td>
+       <td style="font-size:10px;text-align:center;">CVaddr</td><td style="font-size:10px;text-align:center;">CVdata</td>
+       <tr>
+       <td>CVProg</td><td></td>
+       <td><input type="text" id="cvaddr" class="myinput" value="0"></td>
+       <td><input type="text" id="cvdata" class="myinput" value="0"></td>
+       <td><input class="theButton" type="button" onclick="setCV();" value="Prg"></td>
+       <tr>'''
+
+    if servomode == '0':
+       svmstr = 'Steam'
+    else:
+       svmstr = 'Couplers'
+
+    data = data + '''
+       <td><div style="height:22px;"> </div></td><td></td><td></td><td><td>
+       <tr>
+       <td>Servo Mode</td><td></td><td></td>
+       <td colspan=2><div id="smode" style="cursor:pointer;border:1px solid #666666;border-radius:4px;height:22px;text-align:center;padding-top:6px;" onclick="setServoMode();">%s</div></td>''' % svmstr
+
+    data = data + '''
        <tr>
 
        <td> &nbsp; </td><td style="font-size:10px;">Rev</td>
@@ -414,16 +466,6 @@ def refreshnode():
     data = data + '''
        <td><input class="theButton" type="button" onclick="setServo(1);" value="Prg"></td>
        <tr>
-
-       <td> &nbsp; </td><td></td>
-       <td style="font-size:10px;text-align:center;">CVaddr</td><td style="font-size:10px;text-align:center;">CVdata</td>
-       <tr>
-       <td>CVProg</td><td></td>
-       <td><input type="text" id="cvaddr" class="myinput" value="0"></td>
-       <td><input type="text" id="cvdata" class="myinput" value="0"></td>
-       <td><input class="theButton" type="button" onclick="setCV();" value="Prg"></td>
-       <tr>
-
 
        </table>
 
