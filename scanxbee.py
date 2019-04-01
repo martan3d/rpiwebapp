@@ -109,8 +109,6 @@ r = redis.Redis(host='127.0.0.1', port='6379')
 while(1):
     data = Xbee.getPacket()
     if data != None:
-       data = removeESC(data)
-
        msgtype = data[3]
        msb     = data[1]
        lsb     = data[2]
@@ -149,6 +147,7 @@ while(1):
     if data != None:
        message = json.loads(base64.b64decode(data))
        cmd = message[0]
+       print cmd
 
        if cmd == 'SCAN':
           clearDatabase()
