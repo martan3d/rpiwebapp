@@ -349,6 +349,10 @@ def refreshnode():
        svrr        = r.get("ServoReverse")
        servomode   = r.get("ServoMode")
 
+    fn0='0'
+    fn1='1'
+    fn2='2'
+
     # use redis variables below
 
     data = '<div style="width:95%;margin:0 auto;">'
@@ -365,7 +369,7 @@ def refreshnode():
        <table align=center id="table1">
 
        <td>ProtoThrottle ID</td>
-       <td style="width:20px;"> &nbsp; </td><td></td>'''
+       <td style="width:20px;"> &nbsp; </td><td style="width:20px;"> &nbsp; </td><td></td>'''
 
     try:
        adr = adprot[int(addrproto)]
@@ -380,7 +384,7 @@ def refreshnode():
        <tr>
 
        <td>Base ID</td>
-       <td> &nbsp; </td><td></td>'''
+       <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
 
     data = data + '''
        <td><input class="myinput" type="text" id="bid" value="%s"></td>''' % addrbase
@@ -389,7 +393,7 @@ def refreshnode():
        <tr>
 
        <td>Loco Address</td>
-       <td> &nbsp; </td><td></td>'''
+       <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
 
     data = data + '''
        <td><input class="myinput" type="text" id="dccaddr" value="%s"></td>''' % str(locoaddr)
@@ -397,7 +401,7 @@ def refreshnode():
     data = data + '''
       <td><input  class="theButton" type="button" id="dccaddr" onclick="setMaster();" value="Prg"></td>
        <tr>
-       <td>Consist</td><td></td>'''
+       <td>Consist</td><td> &nbsp; </td><td></td>'''
 
     consist = 'OFF'
     if cdir == '1': consist = 'FWD'
@@ -409,19 +413,15 @@ def refreshnode():
     data = data + '''
        <td><input class="myinput" type="text" id="consistaddr" value="%s"></td>''' % consistaddr
 
-    checked = ''
-    if (int(svrr) & 0x01) == 1:
-        checked = 'checked'
-
     data = data + '''
        <td><input class="theButton" type="button" onclick="setConsist();" value="Prg"></td>
        <tr>'''
 
     data = data + '''
        <td> &nbsp; </td><td></td>
-       <td style="font-size:10px;text-align:center;">CVaddr</td><td style="font-size:10px;text-align:center;">CVdata</td>
+       <td> &nbsp; </td><td style="font-size:10px;text-align:center;">CVaddr</td><td style="font-size:10px;text-align:center;">CVdata</td>
        <tr>
-       <td>CVProg</td><td></td>
+       <td>CVProg</td><td> &nbsp; </td><td></td>
        <td><input type="text" id="cvaddr" class="myinput" value="0"></td>
        <td><input type="text" id="cvdata" class="myinput" value="0"></td>
        <td><input class="theButton" type="button" onclick="setCV();" value="Prg"></td>
@@ -435,16 +435,24 @@ def refreshnode():
     data = data + '''
        <td><div style="height:22px;"> </div></td><td></td><td></td><td><td>
        <tr>
-       <td>Servo Mode</td><td></td><td></td>
-       <td colspan=2><div id="smode" style="cursor:pointer;border:1px solid #666666;border-radius:4px;height:22px;text-align:center;padding-top:6px;" onclick="setServoMode();">%s</div></td>''' % svmstr
+       <td>Servo Mode</td><td> &nbsp; </td><td></td><td></td>
+       <td colspan=2>
+       <div id="smode" style="cursor:pointer;border:1px solid #666666;border-radius:4px;height:22px;text-align:center;padding-top:6px;" onclick="setServoMode();">%s</div></td>''' % svmstr
+
+    checked = ''
+    if (int(svrr) & 0x01) == 1:
+        checked = 'checked'
 
     data = data + '''
        <tr>
 
-       <td> &nbsp; </td><td style="font-size:10px;">Rev</td>
+       <td> &nbsp; </td><td style="font-size:10px;">Rev</td><td style="font-size:10px;padding-left:5px">Fn</td>
        <td style="font-size:10px;text-align:center;">LoLim</td><td style="font-size:10px;text-align:center;">HiLim</td>
        <tr>
-       <td>Servo 0</td><td><input id="ck0" type="checkbox" %s></td>''' % checked
+
+       <td>Servo 0</td>
+       <td><input id="ck0" type="checkbox" %s></td>
+       <td><input type="text" id="fn0" class="myinputsmall" value="%s"></td>''' % (checked, fn0)
 
     data = data + '''
        <td><input type="text" id="slo0" class="myinput" value="%s"></td>
@@ -459,12 +467,29 @@ def refreshnode():
         checked = 'checked'
 
     data = data + '''
-       <td>Servo 1</td><td><input id="ck1" type="checkbox" %s></td>
+       <td>Servo 1</td>
+       <td><input id="ck1" type="checkbox" %s></td>
+       <td><input type="text" id="fn1" class="myinputsmall" value="%s"></td>
        <td><input type="text" id="slo1" class="myinput" value="%s"></td>
-       <td><input type="text" id="shi1" class="myinput" value="%s"></td>''' % (checked, svlo1, svhi1)
+       <td><input type="text" id="shi1" class="myinput" value="%s"></td>''' % (checked, fn1, svlo1, svhi1)
 
     data = data + '''
        <td><input class="theButton" type="button" onclick="setServo(1);" value="Prg"></td>
+       <tr>'''
+
+    checked = ''
+    if (int(svrr) & 0x04) == 4:
+        checked = 'checked'
+
+    data = data + '''
+       <td>Servo 2</td>
+       <td><input id="ck2" type="checkbox" %s></td>
+       <td><input type="text" id="fn2" class="myinputsmall" value="%s"></td>
+       <td><input type="text" id="slo2" class="myinput" value="%s"></td>
+       <td><input type="text" id="shi2" class="myinput" value="%s"></td>''' % (checked, fn2, svlo1, svhi1)
+
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setServo(2);" value="Prg"></td>
        <tr>
 
        </table>
