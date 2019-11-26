@@ -127,6 +127,8 @@ def setcv():
 
     address = request.form['address']
 
+    print address, cva, cvd
+
     DCCCVPACKET = 16
     datapayload = chr(DCCCVPACKET) + cvad[0] + cvad[1] + cvad[2] + cvad[3] + cvda[0] + cvda[1] + cvda[2] + cvda[3] +'90123456789'
     senddata = base64.b64encode(json.dumps(['SETCV', address, datapayload ]))
@@ -202,6 +204,8 @@ def setservomode():
        sm = 0
     if servomode == 'Couplers':
        sm = 1
+    if servomode == "ESC":
+       sm = 2
 
     SETSERVOMODE = 48
     datapayload = chr(SETSERVOMODE) + chr(sm) + '234567890123456789'
@@ -286,23 +290,23 @@ def refreshnode():
 
        locoaddr    = message[12]
        ch          = message[13] << 8
-       locoaddr    = locoaddr | ch
+       locoaddr    = locoaddr | ch             # offset 4,5 in main.c firmware side
 
-       consistaddr = message[14]
+       consistaddr = message[14]               # 6,7
        ch          = message[15] << 8
        consistaddr = consistaddr | ch
 
-       cdir        = message[16]
+       cdir        = message[16]               # 8
 
-       svlo0       = message[17]
+       svlo0       = message[17]               # 9,10
        ch          = message[18] << 8
        svlo0       = svlo0 | ch
 
        svhi0       = message[19]
-       ch          = message[20] << 8
+       ch          = message[20] << 8          # 11,12
        svhi0       = svhi0 | ch
 
-       svlo1       = message[21]
+       svlo1       = message[21]               # 13,14
        ch          = message[22] << 8
        svlo1       = svlo1 | ch
 
@@ -310,8 +314,9 @@ def refreshnode():
        ch          = message[24] << 8
        svhi1       = svhi1 | ch
 
-       svrr        = message[25]
-       servomode   = message[26]
+
+       svrr        = message[32]
+       servomode   = message[33]
 
        print "SERVOMODE", servomode
 
@@ -429,8 +434,10 @@ def refreshnode():
 
     if servomode == '0':
        svmstr = 'Steam'
-    else:
+    elif servomode == '1':
        svmstr = 'Couplers'
+    else:
+       svmstr = 'ESC'
 
     data = data + '''
        <td><div style="height:22px;"> </div></td><td></td><td></td><td><td>
