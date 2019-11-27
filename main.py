@@ -302,6 +302,8 @@ def refreshnode():
        ch          = message[18] << 8
        svlo0       = svlo0 | ch
 
+       print "SVLO0", svlo0
+
        svhi0       = message[19]
        ch          = message[20] << 8          # 11,12
        svhi0       = svhi0 | ch
@@ -310,22 +312,40 @@ def refreshnode():
        ch          = message[22] << 8
        svlo1       = svlo1 | ch
 
-       svhi1       = message[23]
+       svhi1       = message[23]               # 15,16
        ch          = message[24] << 8
        svhi1       = svhi1 | ch
 
+       svlo2       = message[25]               # 17,18                                                                                     ch          = message[22] << 8                                                                                                      svlo1       = svlo1 | ch                                                                                                     
+       ch          = message[26] << 8
+       svlo2       = svlo2 | ch
+
+       svhi2       = message[27]               # 19,20
+       ch          = message[28] << 8
+       svhi2       = svhi2 | ch
+
+       sv0func     = message[29]
+       sv1func     = message[30]
+       sv2func     = message[31]
 
        svrr        = message[32]
        servomode   = message[33]
 
-       print "SERVOMODE", servomode
+       print "SVRR", svrr
 
        r.set("ConsistAddress", consistaddr)
        r.set("ConsistDirection", cdir)
+
        r.set("Servo0LowLim", svlo0)
        r.set("Servo0HighLim", svhi0)
        r.set("Servo1LowLim", svlo1)
        r.set("Servo1HighLim", svhi1)
+       r.set("Servo2LowLim", svlo2)
+       r.set("Servo2HighLim", svhi2)
+
+       r.set("Servo0Func", sv0func)
+       r.set("Servo1Func", sv1func)
+       r.set("Servo2Func", sv2func)
 
        r.set("NodeType", nodetype)
        r.set("AddrProto", addrproto)
@@ -351,12 +371,18 @@ def refreshnode():
        svhi0       = r.get("Servo0HighLim")
        svlo1       = r.get("Servo1LowLim")
        svhi1       = r.get("Servo1HighLim")
+       svlo2       = r.get("Servo2LowLim")
+       svhi2       = r.get("Servo2HighLim")
+       sv0func     = r.get("Servo0Func")
+       sv1func     = r.get("Servo1Func")
+       sv2func     = r.get("Servo2Func")
+
        svrr        = r.get("ServoReverse")
        servomode   = r.get("ServoMode")
 
-    fn0='0'
-    fn1='1'
-    fn2='2'
+    fn0=sv0func
+    fn1=sv1func
+    fn2=sv2func
 
     # use redis variables below
 
@@ -493,7 +519,7 @@ def refreshnode():
        <td><input id="ck2" type="checkbox" %s></td>
        <td><input type="text" id="fn2" class="myinputsmall" value="%s"></td>
        <td><input type="text" id="slo2" class="myinput" value="%s"></td>
-       <td><input type="text" id="shi2" class="myinput" value="%s"></td>''' % (checked, fn2, svlo1, svhi1)
+       <td><input type="text" id="shi2" class="myinput" value="%s"></td>''' % (checked, fn2, svlo2, svhi2)
 
     data = data + '''
        <td><input class="theButton" type="button" onclick="setServo(2);" value="Prg"></td>
