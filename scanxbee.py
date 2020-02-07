@@ -175,3 +175,10 @@ while(1):
           txaddr  = buildAddress(address)
           print "SETDCC"
           Xbee.xbeeTransmitDataFrame(txaddr, data)
+
+       if cmd == "REMOTECOMMAND":
+          print "REMOTECOMMAND"
+          address = message[1]
+          data    = message[2]
+          txaddr  = buildAddress(address)
+          Xbee.xbeeTransmitRemoteCommand(txaddr, 'N', 'I', data)

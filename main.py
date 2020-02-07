@@ -20,6 +20,20 @@ adprot = { 0x30 :'A', 0x31 :'B', 0x32 :'C', 0x33 :'D', 0x34 :'E', 0x35 :'F', 0x3
            0x3a : 'K', 0x3b : 'L', 0x3c : 'M', 0x3d : 'N', 0x3e : 'O', 0x3f : 'P', 0x40 : 'Q', 0x41 : 'R', 0x42 : 'S',
            0x43 : 'T', 0x44 : 'U', 0x45 : 'V', 0x46 : 'W', 0x47 : 'X', 0x48 : 'Y', 0x49 : 'Z' }
 
+@main_api.route('/setnodeid/', methods=['GET','POST'])
+def setnodeid():
+    # get new ID and 64bit address of node
+    nodeid = request.form['nodeid'].encode("utf-8")
+    address = request.form['address']
+
+    print "SETNODEID", nodeid, " ", address
+
+    REMOTECOMMAND = 23
+    senddata = base64.b64encode(json.dumps(['REMOTECOMMAND', address, nodeid ]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    return NOP
+
 
 @main_api.route('/setsize/', methods=['GET','POST'])
 def setsize():
@@ -388,11 +402,11 @@ def refreshnode():
 
     data = '<div style="width:95%;margin:0 auto;">'
 
-    if nodetype == 'W':
-       data = '<div style="font-size:24px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
+#    if nodetype == 'W':
+#       data = '<div style="font-size:24px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
 
-    if nodetype == 'A':
-       data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
+#    if nodetype == 'A':
+#       data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
 
     data = data + '<input type="hidden" id="address" value="%s">' % address
 

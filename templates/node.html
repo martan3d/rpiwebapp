@@ -19,6 +19,34 @@ function zoom() {
 }
 
 
+function setnid()
+{
+  var xhr;
+  var macaddr = document.getElementById('address').value;
+  var nodename = document.getElementById('ndname').value;
+  var params = "address="+macaddr+"&nodeid="+nodename;
+
+  //alert(macaddr + " " + nodename);
+
+  xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = handleStateChange;
+  xhr.open("POST", '/setnodeid/', true);
+  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhr.setRequestHeader("Content-length", params.length);
+  xhr.setRequestHeader("Connection", "close");
+  xhr.send(params);
+  function handleStateChange() {
+      if (xhr.readyState == 4 &&  xhr.status == 200) {
+          //var element = document.getElementById('textblock');
+          //element.innerHTML = xhr.responseText;
+      }
+  }
+}                        
+
+
+
+
+
 function setServo(servo)
 {
    var lolim = 'slo'+servo;
@@ -180,6 +208,9 @@ function setServoMode()
            servomode = 'Couplers';
            break;
       case 'Couplers':
+           servomode = 'ESC';
+           break;
+      case 'ESC':
            servomode = 'Steam';
            break;
     }
@@ -378,6 +409,23 @@ body {
         text-shadow:0px 1px 0px #ffffff;
 }
 
+.smButton {
+        background-color:#ededed;
+        -moz-border-radius:4px;
+        -webkit-border-radius:4px;
+        border-radius:4px;
+        border:1px solid eeeeee;
+        height:18px;
+        cursor:pointer;
+        color:#555555;
+        font-family:Arial;
+        font-size:8px;
+        font-weight:bold;
+        padding:0px 4px;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #ffffff;
+}
+
 .pButton {
         background-color:#ededed;
         -moz-border-radius:4px;
@@ -402,7 +450,12 @@ body {
 <body>
 
   <div>
-    <div style="font-size:32px;text-align:center;margin-top:20px;">{{ name }}</div>
+    <div style="font-size:32px;text-align:center;margin-top:20px;">
+       <input style="background-color:#bbbbbb;border:0px;margin-bottom:2px;font-size:32px;text-align:center;" type="text" id="ndname" value="{{ name }}">
+    </div>
+
+    <div style="text-align:center;margin-bottom:6px;"><input class="smButton" type="button" onclick="setnid();" value="change name"></div>
+
     <div style="font-size:12px;text-align:center">{{ address }}</div>
     <input type="hidden" id="address" value="{{address}}">
 
