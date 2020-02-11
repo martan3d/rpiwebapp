@@ -96,6 +96,13 @@ def removeESC(data):
 
     return rd
 
+def debugprint(datalist):
+    for d in datalist:
+        p = "%x" % d
+        print p,
+    print
+
+
 #
 # Main scan - this is the never ending loop that should be run as a background task as root
 #             only root can access the USB port that the Xbee is on
@@ -114,11 +121,13 @@ while(1):
        lsb     = data[2]
 
        if msgtype == 129:
-          if data[7] == 2:
-             print "Protothrottle Broadcast"
+          #if data[7] == 2:
+          #   print "Protothrottle Broadcast"
           if data[7] == 0:
              print "Return Message"
              r.rpush(['queue:xbee'], base64.b64encode(json.dumps(data)) )
+
+             debugprint(data)
 
        if msgtype == 136:
           print "node discovery response"
@@ -129,15 +138,18 @@ while(1):
           else:
             print "internal ND response"  # otherwise it's from us, just toss it
 
+          debugprint(data)
+
        if msgtype == 137:                 # Log ACKs from any outgoing messages
           print "ACK"
+          debugprint(data)
 
        # print some message bytes as debug
 
-       for d in data:
-           p = "%x" % d
-           print p,
-       print
+#       for d in data:
+#           p = "%x" % d
+#           print p,
+#       print
 
 # check transmit queue here, if not empty, build the message and transmit it
 # this queue is populated from the webform, it pushes (redis queue) an ascii command, like 'SCAN' and this builds and transmits it
