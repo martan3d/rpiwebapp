@@ -193,4 +193,6 @@ while(1):
           address = message[1]
           data    = message[2]
           txaddr  = buildAddress(address)
-          Xbee.xbeeTransmitRemoteCommand(txaddr, 'N', 'I', data)
+          Xbee.xbeeTransmitRemoteCommand(txaddr, 'N', 'I', data)    # set node id
+          Xbee.xbeeTransmitRemoteCommand(txaddr, 'A', 'C', '')      # apply changes
+          Xbee.xbeeTransmitRemoteCommand(txaddr, 'W', 'R', '')      # write to eeprom
