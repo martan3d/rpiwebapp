@@ -106,6 +106,7 @@ def setservo():
     servolo  = request.form['lolimit']
     servorev = request.form['reverse']
     address  = request.form['address']
+    func     = request.form['func']
 
     shigh = "0000" + servohi
     shigh = shigh[-4:]
@@ -116,8 +117,14 @@ def setservo():
     if servorev == 'true': sr = '1'
     else: sr = '0'
 
+    adr = "00" + func
+    addr = adr[-2:]
+
+    print addr[0]
+    print addr[1]
+
     SETSERVOCONFIG = 47
-    datapayload = chr(SETSERVOCONFIG) + servonum + shigh[0] + shigh[1] + shigh[2] + shigh[3] + slow[0] + slow[1] + slow[2] + slow[3] + sr + '123456789'
+    datapayload = chr(SETSERVOCONFIG) + servonum + shigh[0] + shigh[1] + shigh[2] + shigh[3] + slow[0] + slow[1] + slow[2] + slow[3] + sr + addr[0] + addr[1] + '3456789'
     print datapayload
     senddata = base64.b64encode(json.dumps(['SETDCC', address, datapayload ]))
 
@@ -316,8 +323,6 @@ def refreshnode():
        ch          = message[18] << 8
        svlo0       = svlo0 | ch
 
-       print "SVLO0", svlo0
-
        svhi0       = message[19]
        ch          = message[20] << 8          # 11,12
        svhi0       = svhi0 | ch
@@ -344,8 +349,6 @@ def refreshnode():
 
        svrr        = message[32]
        servomode   = message[33]
-
-       print "SVRR", svrr
 
        r.set("ConsistAddress", consistaddr)
        r.set("ConsistDirection", cdir)
@@ -398,6 +401,9 @@ def refreshnode():
     fn1=sv1func
     fn2=sv2func
 
+    print fn0, fn1, fn2
+
+
     # use redis variables below
 
     data = '<div style="width:95%;margin:0 auto;">'
@@ -407,6 +413,11 @@ def refreshnode():
 
 #    if nodetype == 'A':
 #       data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
+#    data = buildXbeeReceiver(data)
+#    return data
+
+
+#def buildXbeeReceiver(data):
 
     data = data + '<input type="hidden" id="address" value="%s">' % address
 

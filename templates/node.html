@@ -51,17 +51,20 @@ function setServo(servo)
 {
    var lolim = 'slo'+servo;
    var hilim = 'shi'+servo;
+   var func  = 'fn'+servo;
    var rv = 'ck'+servo;
 
    var lolimit = document.getElementById(lolim).value;
    var hilimit = document.getElementById(hilim).value;
    var reverse = document.getElementById(rv).checked;
+   var func    = document.getElementById(func).value;
    var macaddr = document.getElementById('address').value;
+  
 
-//   alert(lolimit + ' ' + hilimit + ' ' + reverse + ' ' + macaddr);
+//   alert(lolimit + ' ' + hilimit + ' ' + reverse + ' ' + macaddr + ' ' + func);
 
    var xhr;
-   var params = "servonum="+servo+"&lolimit="+lolimit+"&hilimit="+hilimit+"&reverse="+reverse+"&address="+macaddr;
+   var params = "servonum="+servo+"&lolimit="+lolimit+"&hilimit="+hilimit+"&reverse="+reverse+"&address="+macaddr+"&func="+func;
    xhr = new XMLHttpRequest();
    xhr.onreadystatechange = handleStateChange;
    xhr.open("POST", '/setservo/', true);
@@ -348,7 +351,7 @@ body {
 .myinputsmall {
   text-align:right;
   font-size:18px;
-  width:30px;
+  width:40px;
   height:34px;
   padding-right:4px;
   border-radius:6px;
