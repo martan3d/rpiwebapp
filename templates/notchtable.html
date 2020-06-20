@@ -1,0 +1,109 @@
+<html>
+
+<head>
+</head>
+<script>
+
+function getNode(id, name)
+{
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    form.setAttribute("action", '/displaynode/');
+                                                 
+    var hf = document.createElement("input");
+    hf.setAttribute("type", "hidden");
+    hf.setAttribute("name", "address");
+    hf.setAttribute("value", id);
+    form.appendChild(hf);
+
+    hf = document.createElement("input");
+    hf.setAttribute("type", "hidden");
+    hf.setAttribute("name", "name");
+    hf.setAttribute("value", name);
+    form.appendChild(hf);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+</script>
+<style>
+body {
+  font-family:Arial;
+  background-color:#bbbbbb;
+}
+
+.myinput {
+   text-align:right;
+   font-size:18px;
+   width:50px;
+   height:34px;
+   padding-right:4px;
+   border-radius:6px;
+   margin-bottom:4px;
+}
+
+P.pageblock {
+  margin-left: auto;
+  margin-right: auto;
+  width:400px;
+}
+
+.theButton {
+  background-color:#ededed;
+  -moz-border-radius:6px;
+  -webkit-border-radius:6px;
+  border-radius:6px;
+  border:1px solid eeeeee;
+  height:34px;
+  cursor:pointer;
+  color:#555555;
+  font-family:Arial;
+  font-size:15px;
+  font-weight:bold;
+  padding:0px 14px;
+  text-decoration:none;
+  text-shadow:0px 1px 0px #ffffff;
+} 
+
+</style>
+<body>
+
+  <div style="text-align:center;">
+
+    <div style="font-size:32px;padding-top:20px;">{{ name }}</div>
+    <div style="font-size:12px;">{{ address }}</div>                                                             
+
+  </div>
+
+  <P class="pageblock">
+
+        <table border="0" padding=4 style="align-self:center;margin-top:20px;margin-left:30px;">
+
+           <td colspan=5 style="padding-left:110px;padding-top:8px;"><h3>Notch Table</h3></td>
+           <tr><td></td><td>low</td><td>high</td><td>output</td><tr>
+
+           {% for s in notches %}
+
+           <td style="padding-left:38px;"><b>{{ s[0] }} - </b></td>
+           <td><input class=myinput type=text size=8 id=notch-{{s[1]}} value={{ s[1] }}></td> 
+           <td><input class=myinput type=text size=8 id=notch-{{s[2]}} value={{ s[2] }}></td> 
+           <td><input class=myinput type=text size=8 id=notch-{{s[3]}} value={{ s[3] }}></td>
+           <td><input class="theButton" type="button" onclick="setNotch({{ s[0] }});" value="Prg"></td>
+           <tr>
+
+           {% endfor %}
+
+           <td colspan=5 style="padding-left:135px;padding-top:10px;">
+           <input class="theButton" type="button" onclick="getNode('{{ address }}', '{{ name }}')" value="Back";>
+           </td>
+
+        </table>
+
+   </P>
+
+</body>
+<script>
+document.body.style.zoom = 2.0
+</script>
+</html>

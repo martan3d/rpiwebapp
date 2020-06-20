@@ -324,6 +324,35 @@ function setBase()
    }
 
 }
+
+
+
+function notchtable()
+{
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    form.setAttribute("action", '/notchtable/');
+
+    var macaddr = document.getElementById('address').value; 
+    var name = document.getElementById('name').value;
+
+    var hf = document.createElement("input");
+    hf.setAttribute("type", "hidden");
+    hf.setAttribute("name", "macaddr");
+    hf.setAttribute("value", macaddr);
+    form.appendChild(hf);
+
+    hf = document.createElement("input");
+    hf.setAttribute("type", "hidden");
+    hf.setAttribute("name", "name");
+    hf.setAttribute("value", name);
+    form.appendChild(hf);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+
 function setHome()
 {
    window.location.href = "/";
@@ -455,6 +484,7 @@ body {
   <div>
     <div style="font-size:32px;text-align:center;margin-top:20px;">
        <input style="background-color:#bbbbbb;border:0px;margin-bottom:2px;font-size:32px;text-align:center;" type="text" id="ndname" value="{{ name }}">
+       <input type="hidden" id="name" value="{{name}}">
     </div>
 
     <div style="text-align:center;margin-bottom:6px;"><input class="smButton" type="button" onclick="setnid();" value="change name"></div>

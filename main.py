@@ -20,6 +20,20 @@ adprot = { 0x30 :'A', 0x31 :'B', 0x32 :'C', 0x33 :'D', 0x34 :'E', 0x35 :'F', 0x3
            0x3a : 'K', 0x3b : 'L', 0x3c : 'M', 0x3d : 'N', 0x3e : 'O', 0x3f : 'P', 0x40 : 'Q', 0x41 : 'R', 0x42 : 'S',
            0x43 : 'T', 0x44 : 'U', 0x45 : 'V', 0x46 : 'W', 0x47 : 'X', 0x48 : 'Y', 0x49 : 'Z' }
 
+@main_api.route('/notchtable/', methods=['GET','POST'])
+def notchtable():
+    address = request.form['macaddr']
+    name    = request.form['name']
+
+    notches = []
+
+    for i in range(0,9):
+        notch = [i, 20, 30, 40]
+        notches.append(notch)
+
+    return render_template('notchtable.html', notches=notches, address=address, name=name)
+
+
 @main_api.route('/setnodeid/', methods=['GET','POST'])
 def setnodeid():
     # get new ID and 64bit address of node
@@ -551,6 +565,10 @@ def refreshnode():
        <tr>
 
        </table>
+
+           <div style="text-align:center;margin-top:20px;">
+             <input class="mybutton" type="button" onclick="notchtable();" value="Notch Table">
+          </div>
 
            <div style="text-align:center;margin-top:20px;">
              <input  class="mybutton" type="button" onclick="setHome();" value="Home">
