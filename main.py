@@ -112,6 +112,7 @@ def displayNode():
 
 
 ##########################################################################
+
 @main_api.route('/setservo/', methods=['POST','GET'])
 def setservo():
     print "SETServo"
@@ -302,142 +303,19 @@ def setbase():
     return NOP
 
 
-@main_api.route('/checkscan/', methods=['POST','GET'])
-def checkscan():
-    global GLOB
-    return GLOB
+def airwireScreen(address):
 
-@main_api.route('/refreshnode/', methods=['POST','GET'])
-def refreshnode():
-    global GLOB
-    print "REFRESH NODE"
-    address = request.form['address']
     r = redis.Redis(host='127.0.0.1', port='6379')
-    rxdata = r.rpop(['queue:xbee'])
-    if rxdata != None:
-       GLOB = 'S'
-       message = json.loads(base64.b64decode(rxdata))
-       print "GOT RESPONSE", message
-       nodetype    = chr(message[9])
-       addrbase    = int(message[10])
-       addrproto   = message[11]
-       airchan     = message[12]
-
-       locoaddr    = message[12]
-       ch          = message[13] << 8
-       locoaddr    = locoaddr | ch             # offset 4,5 in main.c firmware side
-
-       consistaddr = message[14]               # 6,7
-       ch          = message[15] << 8
-       consistaddr = consistaddr | ch
-
-       cdir        = message[16]               # 8
-
-       svlo0       = message[17]               # 9,10
-       ch          = message[18] << 8
-       svlo0       = svlo0 | ch
-
-       svhi0       = message[19]
-       ch          = message[20] << 8          # 11,12
-       svhi0       = svhi0 | ch
-
-       svlo1       = message[21]               # 13,14
-       ch          = message[22] << 8
-       svlo1       = svlo1 | ch
-
-       svhi1       = message[23]               # 15,16
-       ch          = message[24] << 8
-       svhi1       = svhi1 | ch
-
-       svlo2       = message[25]               # 17,18                                                                                     ch          = message[22] << 8                                                                                                      svlo1       = svlo1 | ch                                                                                                     
-       ch          = message[26] << 8
-       svlo2       = svlo2 | ch
-
-       svhi2       = message[27]               # 19,20
-       ch          = message[28] << 8
-       svhi2       = svhi2 | ch
-
-       sv0func     = message[29]
-       sv1func     = message[30]
-       sv2func     = message[31]
-
-       svrr        = message[32]
-       servomode   = message[33]
-
-       r.set("ConsistAddress", consistaddr)
-       r.set("ConsistDirection", cdir)
-
-       r.set("Servo0LowLim", svlo0)
-       r.set("Servo0HighLim", svhi0)
-       r.set("Servo1LowLim", svlo1)
-       r.set("Servo1HighLim", svhi1)
-       r.set("Servo2LowLim", svlo2)
-       r.set("Servo2HighLim", svhi2)
-
-       r.set("Servo0Func", sv0func)
-       r.set("Servo1Func", sv1func)
-       r.set("Servo2Func", sv2func)
-
-       r.set("NodeType", nodetype)
-       r.set("AddrProto", addrproto)
-       r.set("AddrBase", addrbase)
-       r.set("ServoReverse", svrr)
-       r.set("ServoMode", servomode)
-
-       if nodetype == 'A':   # airwire
-          r.set("airChan", airchan)
-
-       if nodetype == 'W':   # Widget
-          r.set("locoAddr", locoaddr)
-    else:
-       nodetype  = r.get("NodeType")
-       addrproto = r.get("AddrProto")
-       addrbase  = r.get("AddrBase")
-       locoaddr  = r.get("locoAddr")
-       airchan   = r.get("airChan")
-
-       consistaddr = r.get("ConsistAddress")
-       cdir        = r.get("ConsistDirection")
-       svlo0       = r.get("Servo0LowLim")
-       svhi0       = r.get("Servo0HighLim")
-       svlo1       = r.get("Servo1LowLim")
-       svhi1       = r.get("Servo1HighLim")
-       svlo2       = r.get("Servo2LowLim")
-       svhi2       = r.get("Servo2HighLim")
-       sv0func     = r.get("Servo0Func")
-       sv1func     = r.get("Servo1Func")
-       sv2func     = r.get("Servo2Func")
-
-       svrr        = r.get("ServoReverse")
-       servomode   = r.get("ServoMode")
-
-    fn0=sv0func
-    fn1=sv1func
-    fn2=sv2func
-
-    print fn0, fn1, fn2
-
-
-    # use redis variables below
-
+    addrbase    = r.get("AddrBase")
+    addrproto   = r.get("AddrProto")
+    dccaddr     = r.get("dccAddr")
+    channel     = r.get("airChan")
+    
     data = '<div style="width:95%;margin:0 auto;">'
-
-#    if nodetype == 'W':
-#       data = '<div style="font-size:24px;margin:20px;text-align:center;">Xbee DCC Receiver</div>'
-
-#    if nodetype == 'A':
-#       data = '<div style="font-size:24px;margin:20px;text-align:center;">Airwire Translator</div>'
-#    data = buildXbeeReceiver(data)
-#    return data
-
-
-#def buildXbeeReceiver(data):
-
     data = data + '<input type="hidden" id="address" value="%s">' % address
 
     data = data + '''
        <table align=center id="table1">
-
        <td>ProtoThrottle ID</td>
        <td style="width:20px;"> &nbsp; </td><td style="width:20px;"> &nbsp; </td><td></td>'''
 
@@ -452,7 +330,6 @@ def refreshnode():
     data = data + '''
        <td><input class="theButton" type="button" onclick="setProto();" value="Prg"></td>
        <tr>
-
        <td>Base ID</td>
        <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
 
@@ -461,7 +338,193 @@ def refreshnode():
     data = data + '''
        <td><input  class="theButton" type="button" onclick="setBase();" value="Prg"></td>
        <tr>
+       <td>Airwire Channel</td>
+       <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
 
+    data = data + '''
+       <td><input class="myinput" type="text" id="dccaddr" value="%s"></td>''' % channel
+
+    data = data + '''
+      <td><input  class="theButton" type="button" id="dccaddr" onclick="setMaster();" value="Prg"></td>'''
+            
+    data = data + '''  
+      </table> '''
+
+    data = data + '''
+           <div style="text-align:center;margin-top:20px;">
+             <input  class="mybutton" type="button" onclick="setHome();" value="Home">
+           </div>'''
+
+    return data
+
+
+
+
+
+@main_api.route('/checkscan/', methods=['POST','GET'])
+def checkscan():
+    global GLOB
+    return GLOB
+
+@main_api.route('/refreshnode/', methods=['POST','GET'])
+def refreshnode():
+    global GLOB
+    print "REFRESH NODE"
+    address = request.form['address']
+   
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    rxdata = r.rpop(['queue:xbee'])
+
+    if rxdata == None:
+       data = '''
+           <div style="text-align:center;margin-top:40px;">
+             <input  class="mybutton" type="button" onclick="setHome();" value="Home">
+           </div>'''       
+       return data
+       
+    ## got a response, pull the data from it and build the page 
+
+    GLOB = 'S'
+    message = json.loads(base64.b64decode(rxdata))
+    print "Return Message -> ", message
+
+    nodetype    = chr(message[9])
+    addrbase    = int(message[10])
+    addrproto   = message[11]
+       
+    ## if this is a translator       
+    dccaddr     = int(message[12])
+    dccaddr     = dccaddr | (int(message[13]) >> 8)
+    airchan     = message[14]
+       
+    ## otherwise it's an Xbee node
+    locoaddr    = message[12]
+    ch          = message[13] << 8
+    locoaddr    = locoaddr | ch             # offset 4,5 in main.c firmware side
+
+    consistaddr = message[14]               # 6,7
+    ch          = message[15] << 8
+    consistaddr = consistaddr | ch
+
+    cdir        = message[16]               # 8
+
+    svlo0       = message[17]               # 9,10
+    ch          = message[18] << 8
+    svlo0       = svlo0 | ch
+
+    svhi0       = message[19]
+    ch          = message[20] << 8          # 11,12
+    svhi0       = svhi0 | ch
+
+    svlo1       = message[21]               # 13,14
+    ch          = message[22] << 8
+    svlo1       = svlo1 | ch
+
+    svhi1       = message[23]               # 15,16
+    ch          = message[24] << 8
+    svhi1       = svhi1 | ch
+
+    svlo2       = message[25]               # 17,18                                                                                     ch          = message[22] << 8                                                                                                      svlo1       = svlo1 | ch                                                                                                     
+    ch          = message[26] << 8
+    svlo2       = svlo2 | ch
+
+    svhi2       = message[27]               # 19,20
+    ch          = message[28] << 8
+    svhi2       = svhi2 | ch
+
+    sv0func     = message[29]
+    sv1func     = message[30]
+    sv2func     = message[31]
+
+    svrr        = message[32]
+    servomode   = message[33]
+
+    ## data pulled from return Xbee message, put in redis
+
+    r.set("ConsistAddress", consistaddr)
+    r.set("ConsistDirection", cdir)
+    r.set("Servo0LowLim", svlo0)
+    r.set("Servo0HighLim", svhi0)
+    r.set("Servo1LowLim", svlo1)
+    r.set("Servo1HighLim", svhi1)
+    r.set("Servo2LowLim", svlo2)
+    r.set("Servo2HighLim", svhi2)
+    r.set("Servo0Func", sv0func)
+    r.set("Servo1Func", sv1func)
+    r.set("Servo2Func", sv2func)
+    r.set("NodeType", nodetype)
+    r.set("AddrProto", addrproto)
+    r.set("AddrBase", addrbase)
+    r.set("ServoReverse", svrr)
+    r.set("ServoMode", servomode)
+    r.set("airChan", airchan)
+    r.set("locoAddr", locoaddr)
+    r.set("dccAddr", dccaddr)
+
+    ## Check message return type, if airwire, go off and do that
+    
+    if nodetype == 'A':
+       data = airwireScreen(address)
+       return data
+
+    if nodetype == 'W':
+       data = nodeScreen(address)
+       return data
+       
+def nodeScreen(address):
+
+    r = redis.Redis(host='127.0.0.1', port='6379')
+
+    nodetype    = r.get("NodeType")
+    addrproto   = r.get("AddrProto")
+    addrbase    = r.get("AddrBase")
+    locoaddr    = r.get("locoAddr")
+    airchan     = r.get("airChan")
+    consistaddr = r.get("ConsistAddress")
+    cdir        = r.get("ConsistDirection")
+    svlo0       = r.get("Servo0LowLim")
+    svhi0       = r.get("Servo0HighLim")
+    svlo1       = r.get("Servo1LowLim")
+    svhi1       = r.get("Servo1HighLim")
+    svlo2       = r.get("Servo2LowLim")
+    svhi2       = r.get("Servo2HighLim")
+    sv0func     = r.get("Servo0Func")
+    sv1func     = r.get("Servo1Func")
+    sv2func     = r.get("Servo2Func")
+    svrr        = r.get("ServoReverse")
+    servomode   = r.get("ServoMode")
+
+    fn0=sv0func
+    fn1=sv1func
+    fn2=sv2func
+
+    data = '<div style="width:95%;margin:0 auto;">'
+    data = data + '<input type="hidden" id="address" value="%s">' % address
+    data = data + '''
+       <table align=center id="table1">
+       <td>ProtoThrottle ID</td>
+       <td style="width:20px;"> &nbsp; </td><td style="width:20px;"> &nbsp; </td><td></td>'''
+
+    try:
+       adr = adprot[int(addrproto)]
+    except:
+       adr = 0
+       print 'addr decode bad', addrproto, adprot
+
+    data = data + '''
+       <td style="width:44px;"><input class="myinput" type="text" id="pid" value="%s"></td>''' % adr
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setProto();" value="Prg"></td>
+       <tr>
+       <td>Base ID</td>
+       <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
+
+    data = data + '''
+       <td><input class="myinput" type="text" id="bid" value="%s"></td>''' % addrbase
+
+    data = data + '''
+       <td><input  class="theButton" type="button" onclick="setBase();" value="Prg"></td>
+       <tr>
        <td>Loco Address</td>
        <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
 
@@ -470,8 +533,8 @@ def refreshnode():
 
     data = data + '''
       <td><input  class="theButton" type="button" id="dccaddr" onclick="setMaster();" value="Prg"></td>
-       <tr>
-       <td>Consist</td><td> &nbsp; </td><td></td>'''
+      <tr>
+      <td>Consist</td><td> &nbsp; </td><td></td>'''
 
     consist = 'OFF'
     if cdir == '1': consist = 'FWD'
@@ -563,13 +626,15 @@ def refreshnode():
     data = data + '''
        <td><input class="theButton" type="button" onclick="setServo(2);" value="Prg"></td>
        <tr>
-
-       </table>
-
+       </table>'''
+    
+    if consist != 'OFF':
+       data = data + '''
            <div style="text-align:center;margin-top:20px;">
              <input class="mybutton" type="button" onclick="notchtable();" value="Notch Table">
-          </div>
-
+          </div> '''
+          
+    data = data + '''
            <div style="text-align:center;margin-top:20px;">
              <input  class="mybutton" type="button" onclick="setHome();" value="Home">
            </div>'''

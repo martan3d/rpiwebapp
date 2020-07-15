@@ -3,6 +3,7 @@
 <head>
 </head>
 
+
 <script>
 
 var myscan;
@@ -111,8 +112,6 @@ function doScan()
 
 function getNode(address, name)
 {
-   doScan();
-
    var xhr;
    var params = "address="+address;
    xhr = new XMLHttpRequest();
@@ -127,6 +126,7 @@ function getNode(address, name)
            var element = document.getElementById('textblock');
            element.innerHTML = xhr.responseText;
        }
+   doScan();
    }
 
 }
@@ -194,8 +194,7 @@ function setConsist()
    xhr.send(params);
    function handleStateChange() {
        if (xhr.readyState == 4 &&  xhr.status == 200) {
-           //var element = document.getElementById('textblock');
-           //element.innerHTML = xhr.responseText;
+           doScan();
        }
    }
 }
@@ -501,7 +500,6 @@ body {
 </body>
 <script>
 window.onload = getNode();
-window.onload = doScan();
 document.body.style.zoom = 2.0
 </script>
 </html>
