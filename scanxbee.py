@@ -13,8 +13,9 @@ import MySQLdb
 
 # message codes from front end requests
 
-RETURNTYPE = 37
-SETCV      = 16
+READNOTCHES = 36
+RETURNTYPE  = 37
+SETCV       = 16
 
 # build bytes address from string
 
@@ -171,7 +172,14 @@ while(1):
           txaddr  = buildAddress(address)
           data =  chr(RETURNTYPE) + data[1:]
           Xbee.xbeeTransmitDataFrame(txaddr, data)
-
+          
+       if cmd == 'READNOTCHES':
+          address = message[1]
+          data    = message[2]
+          txaddr  = buildAddress(address)
+          data =  chr(READNOTCHES) + data[1:]
+          Xbee.xbeeTransmitDataFrame(txaddr, data)
+       
        if cmd == 'SETCV':
           address = message[1]
           data    = message[2]

@@ -113,7 +113,7 @@ function doScan()
 function getNode(address, name)
 {
    var xhr;
-   var params = "address="+address;
+   var params = "address="+address+"&name="+name;
    xhr = new XMLHttpRequest();
    xhr.onreadystatechange = handleStateChange;
    xhr.open("POST", '/refreshnode/', true);
@@ -337,7 +337,7 @@ function notchtable()
 
     var hf = document.createElement("input");
     hf.setAttribute("type", "hidden");
-    hf.setAttribute("name", "macaddr");
+    hf.setAttribute("name", "address");
     hf.setAttribute("value", macaddr);
     form.appendChild(hf);
 
@@ -500,6 +500,6 @@ body {
 </body>
 <script>
 window.onload = getNode();
-document.body.style.zoom = 2.0
+document.body.style.zoom = 2.0;
 </script>
 </html>

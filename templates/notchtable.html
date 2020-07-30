@@ -4,11 +4,75 @@
 </head>
 <script>
 
-function getNode(id, name)
+var myscan;
+var myflag = 0;
+
+function doScan()
+{
+   var xhr;
+   var params = "0";
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/checkscan/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           if (xhr.responseText == 'G') {
+               if (myflag == 0) {
+                   myscan = window.setInterval(getNode, 1000);
+                   myflag = 1;
+               }
+           }
+           if (xhr.responseText == 'S') {
+               window.clearInterval(myscan);
+               myflag = 0;
+           }
+       }
+   }
+}
+
+
+function getNode(address, name)
+{
+   var xhr;
+   var params = "address="+address+"&name="+name;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/refreshnode/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           var element = document.getElementById('textblock');
+           element.innerHTML = xhr.responseText;
+       }
+   doScan();
+   }
+
+}
+
+
+
+function setNotch(notchNum)
+{
+  var macaddr   = document.getElementById('address').value;
+  var notchlow  = document.getElementById('notch-'+notchNum+'-low').value;
+  var notchhigh = document.getElementById('notch-'+notchNum+'-high').value;
+  var notchvalue = document.getElementById('notch-'+notchNum+'-output').value;
+  alert(macaddr + " " + notchlow + " " + notchhigh + " " + notchvalue);
+}
+
+
+function getNotches(id, name)
 {
     var form = document.createElement("form");
     form.setAttribute("method", "post");
-    form.setAttribute("action", '/displaynode/');
+    form.setAttribute("action", '/notchtable/');
                                                  
     var hf = document.createElement("input");
     hf.setAttribute("type", "hidden");
@@ -24,6 +88,11 @@ function getNode(id, name)
 
     document.body.appendChild(form);
     form.submit();
+}
+
+function setHome()
+{
+   window.location.href = "/";
 }
 
 </script>
@@ -66,44 +135,29 @@ P.pageblock {
   text-shadow:0px 1px 0px #ffffff;
 } 
 
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 </style>
 <body>
 
-  <div style="text-align:center;">
+  <div style="text-align:center;border:1px;">
 
     <div style="font-size:32px;padding-top:20px;">{{ name }}</div>
     <div style="font-size:12px;">{{ address }}</div>                                                             
-
-  </div>
-
-  <P class="pageblock">
-
-        <table border="0" padding=4 style="align-self:center;margin-top:20px;margin-left:30px;">
-
-           <td colspan=5 style="padding-left:110px;padding-top:8px;"><h3>Notch Table</h3></td>
-           <tr><td></td><td>low</td><td>high</td><td>output</td><tr>
-
-           {% for s in notches %}
-
-           <td style="padding-left:38px;"><b>{{ s[0] }} - </b></td>
-           <td><input class=myinput type=text size=8 id=notch-{{s[1]}} value={{ s[1] }}></td> 
-           <td><input class=myinput type=text size=8 id=notch-{{s[2]}} value={{ s[2] }}></td> 
-           <td><input class=myinput type=text size=8 id=notch-{{s[3]}} value={{ s[3] }}></td>
-           <td><input class="theButton" type="button" onclick="setNotch({{ s[0] }});" value="Prg"></td>
-           <tr>
-
-           {% endfor %}
-
-           <td colspan=5 style="padding-left:135px;padding-top:10px;">
-           <input class="theButton" type="button" onclick="getNode('{{ address }}', '{{ name }}')" value="Back";>
-           </td>
-
-        </table>
-
-   </P>
-
+    <input type="hidden" id="address" value="{{ address }}">
+    
+    <div id="textblock">
+              &nbsp;
+    </div>
+ 
+ </div>
+  
 </body>
 <script>
-document.body.style.zoom = 2.0
+window.onload = doScan();
+document.body.style.zoom = 2.0;
 </script>
 </html>

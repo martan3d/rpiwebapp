@@ -22,14 +22,22 @@ adprot = { 0x30 :'A', 0x31 :'B', 0x32 :'C', 0x33 :'D', 0x34 :'E', 0x35 :'F', 0x3
 
 @main_api.route('/notchtable/', methods=['GET','POST'])
 def notchtable():
-    address = request.form['macaddr']
+    global GLOB
+    global HEIGHT
+    global WIDTH
+
+    my = int(HEIGHT)
+    mx = int(WIDTH)
+
+    address = request.form['address']
     name    = request.form['name']
 
+    senddata = base64.b64encode(json.dumps(['READNOTCHES', address, '01234567890123456789']))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    GLOB = 'G'
+    
     notches = []
-
-    for i in range(0,9):
-        notch = [i, 20, 30, 40]
-        notches.append(notch)
 
     return render_template('notchtable.html', notches=notches, address=address, name=name)
 
@@ -104,6 +112,11 @@ def displayNode():
 
     address = request.form['address']
     name    = request.form['name']
+    
+    # clear any old entry in queue
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    rxdata = r.rpop(['queue:xbee'])
+    
     senddata = base64.b64encode(json.dumps(['READNODE', address, '01234567890123456789']))
     r = redis.Redis(host='127.0.0.1', port='6379')
     r.rpush(['queue:xbeetx'], senddata )
@@ -303,8 +316,28 @@ def setbase():
     return NOP
 
 
-def airwireScreen(address):
+def consistScreen(address, name, message):
+    data = '''    
+        <table border="0" class="center" padding=4 style="align-self:center;margin-top:20px;">
+           <td colspan=5 style="padding-top:8px;text-align:center;"><h3>Notch Table</h3></td>
+           <tr><td></td><td>low</td><td>high</td><td>output</td><tr>'''
 
+    for s in range(0,8):
+        data = data + '<td style="text-align:right;"><b>%s - </b></td>' % s
+        data = data + '<td><input class=myinput type=text size=8 id=notch-%s-low value=%s></td>' % (s, s)
+        data = data + '<td><input class=myinput type=text size=8 id=notch-%s-high value=%s></td>' % (s, s)
+        data = data + '<td><input class=myinput type=text size=8 id=notch-%s-output value=%s></td>' % (s, s)
+        data = data + '<td><input class="theButton" type="button" onclick="setNotch(%s);" value="Prg"></td>' % s
+        data = data + '<tr>'
+        
+    data = data + '<td colspan=5 style="text-align:center;padding-top:10px;">'
+    data = data + '<input class="theButton" type="button" onclick="setHome();" value="Home">'
+    data = data + '</td></table>'
+
+    return data
+
+
+def airwireScreen(address):
     r = redis.Redis(host='127.0.0.1', port='6379')
     addrbase    = r.get("AddrBase")
     addrproto   = r.get("AddrProto")
@@ -335,6 +368,7 @@ def airwireScreen(address):
 
     data = data + '''
        <td><input class="myinput" type="text" id="bid" value="%s"></td>''' % addrbase
+
     data = data + '''
        <td><input  class="theButton" type="button" onclick="setBase();" value="Prg"></td>
        <tr>
@@ -342,10 +376,24 @@ def airwireScreen(address):
        <td> &nbsp; </td><td> &nbsp; </td><td></td>'''
 
     data = data + '''
-       <td><input class="myinput" type="text" id="dccaddr" value="%s"></td>''' % channel
+       <td><input class="myinput" type="text" id="channel" value="%s"></td>''' % channel
 
     data = data + '''
-      <td><input  class="theButton" type="button" id="dccaddr" onclick="setMaster();" value="Prg"></td>'''
+      <td><input  class="theButton" type="button" id="channel" onclick="setMaster();" value="Prg"></td>'''
+      
+    data = data + '''
+       <tr>
+       <td> &nbsp; </td><td></td>
+       <td style="font-size:10px;text-align:center;">DCCaddr</td>
+       <td style="font-size:10px;text-align:center;">CVaddr</td>
+       <td style="font-size:10px;text-align:center;">CVdata</td>
+       <tr>
+       <td>CVProg</td><td> &nbsp; </td>
+       <td><input type="text" id="dccaddr" class="myinput" value="0"></td>
+       <td><input type="text" id="cvaddr"  class="myinput" value="0"></td>
+       <td><input type="text" id="cvdata"  class="myinput" value="0"></td>
+       <td><input class="theButton" type="button" onclick="setCV();" value="Prg"></td>
+       <tr>'''
             
     data = data + '''  
       </table> '''
@@ -358,9 +406,6 @@ def airwireScreen(address):
     return data
 
 
-
-
-
 @main_api.route('/checkscan/', methods=['POST','GET'])
 def checkscan():
     global GLOB
@@ -370,8 +415,19 @@ def checkscan():
 def refreshnode():
     global GLOB
     print "REFRESH NODE"
-    address = request.form['address']
-   
+
+    nodetype = "Z"
+
+    try:
+       address = request.form['address']
+    except:
+       address = ""
+       
+    try:
+       name = request.form['name']
+    except:
+       name = ""
+       
     r = redis.Redis(host='127.0.0.1', port='6379')
     rxdata = r.rpop(['queue:xbee'])
 
@@ -391,6 +447,8 @@ def refreshnode():
     nodetype    = chr(message[9])
     addrbase    = int(message[10])
     addrproto   = message[11]
+
+    print "Node Type -> ", nodetype
        
     ## if this is a translator       
     dccaddr     = int(message[12])
@@ -452,7 +510,7 @@ def refreshnode():
     r.set("Servo0Func", sv0func)
     r.set("Servo1Func", sv1func)
     r.set("Servo2Func", sv2func)
-    r.set("NodeType", nodetype)
+    ##r.set("NodeType", nodetype)
     r.set("AddrProto", addrproto)
     r.set("AddrBase", addrbase)
     r.set("ServoReverse", svrr)
@@ -461,7 +519,7 @@ def refreshnode():
     r.set("locoAddr", locoaddr)
     r.set("dccAddr", dccaddr)
 
-    ## Check message return type, if airwire, go off and do that
+    ## Check message return to determine screen to display
     
     if nodetype == 'A':
        data = airwireScreen(address)
@@ -470,6 +528,12 @@ def refreshnode():
     if nodetype == 'W':
        data = nodeScreen(address)
        return data
+
+    if nodetype == 'N':
+       print "CONSIST SCREEN", address, name, message
+       data = consistScreen(address, name, message)
+       return data
+
        
 def nodeScreen(address):
 
