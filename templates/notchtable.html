@@ -60,11 +60,31 @@ function getNode(address, name)
 
 function setNotch(notchNum)
 {
-  var macaddr   = document.getElementById('address').value;
-  var notchlow  = document.getElementById('notch-'+notchNum+'-low').value;
-  var notchhigh = document.getElementById('notch-'+notchNum+'-high').value;
-  var notchvalue = document.getElementById('notch-'+notchNum+'-output').value;
-  alert(macaddr + " " + notchlow + " " + notchhigh + " " + notchvalue);
+   var address    = document.getElementById('address').value;
+   var myval      = 'notchlow'+notchNum;
+   var notchlow   = document.getElementById(myval);
+   
+   myval          = 'notchhigh'+notchNum;
+   var notchhigh  = document.getElementById(myval);
+   
+   myval          = 'notchoutput'+notchNum;
+   var notchvalue = document.getElementById(myval);
+   
+   var xhr;
+   var params = "address="+address+"&notchnum="+notchNum;
+   params = params +"&notchlow="+notchlow.value;
+   params = params +"&notchhigh="+notchhigh.value+"&notchvalue="+notchvalue.value;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setnotch/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+       }
+   }
 }
 
 
@@ -158,6 +178,6 @@ table.center {
 </body>
 <script>
 window.onload = doScan();
-document.body.style.zoom = 2.0;
+document.body.style.zoom = 1.0;
 </script>
 </html>

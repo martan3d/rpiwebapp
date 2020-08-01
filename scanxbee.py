@@ -13,6 +13,7 @@ import MySQLdb
 
 # message codes from front end requests
 
+SETNOTCH    = 50
 READNOTCHES = 36
 RETURNTYPE  = 37
 SETCV       = 16
@@ -178,6 +179,13 @@ while(1):
           data    = message[2]
           txaddr  = buildAddress(address)
           data =  chr(READNOTCHES) + data[1:]
+          Xbee.xbeeTransmitDataFrame(txaddr, data)
+          
+       if cmd == 'SETNOTCH':
+          address = message[1]
+          data    = message[2]
+          txaddr  = buildAddress(address)
+          data =  chr(SETNOTCH) + data[1:]
           Xbee.xbeeTransmitDataFrame(txaddr, data)
        
        if cmd == 'SETCV':

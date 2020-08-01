@@ -41,6 +41,35 @@ def notchtable():
 
     return render_template('notchtable.html', notches=notches, address=address, name=name)
 
+@main_api.route('/setnotch/', methods=['GET','POST'])
+def setnotch():
+    enable    = "0"
+    address   = request.form['address']
+    notch     = request.form['notchnum']
+    notchlow  = request.form['notchlow']
+    notchhigh = request.form['notchhigh']
+    notchval  = request.form['notchvalue']
+    
+    nhigh = "000" + notchhigh
+    nhigh = nhigh[-3:]
+
+    nlow = "000" + notchlow
+    nlow = nlow[-3:]
+    
+    nval = "000" + notchval
+    nval = nval[-3:]
+    
+    SETNOTCH = 50   ## 1        2        3       4         5         6         7         8         9        10        11         12       
+    payload = chr(SETNOTCH) + enable + notch + nval[0] + nval[1] + nval[2] + nlow[0] + nlow[1] + nlow[2] + nhigh[0] + nhigh[1] + nhigh[2] + '01234567'   
+    
+    print "SET NOTCH", payload
+    
+    senddata = base64.b64encode(json.dumps(['SETNOTCH', address, payload]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    
+    return NOP
+
 
 @main_api.route('/setnodeid/', methods=['GET','POST'])
 def setnodeid():
@@ -113,9 +142,11 @@ def displayNode():
     address = request.form['address']
     name    = request.form['name']
     
-    # clear any old entry in queue
+    ## clear any old entries in queue
     r = redis.Redis(host='127.0.0.1', port='6379')
-    rxdata = r.rpop(['queue:xbee'])
+    r.flushdb()
+    
+    print "PUSH READNODE", address
     
     senddata = base64.b64encode(json.dumps(['READNODE', address, '01234567890123456789']))
     r = redis.Redis(host='127.0.0.1', port='6379')
@@ -317,17 +348,31 @@ def setbase():
 
 
 def consistScreen(address, name, message):
+    nl = []
+    nh = []
+    nv = []
+    
+    enablenotches = message[10]
+    l = 11
+    for i in range(0,8):
+        nl.append(message[l])
+        l = l + 1
+        nh.append(message[l])
+        l = l + 1
+        nv.append(message[l])
+        l = l + 1
+    
     data = '''    
         <table border="0" class="center" padding=4 style="align-self:center;margin-top:20px;">
            <td colspan=5 style="padding-top:8px;text-align:center;"><h3>Notch Table</h3></td>
            <tr><td></td><td>low</td><td>high</td><td>output</td><tr>'''
-
+           
     for s in range(0,8):
-        data = data + '<td style="text-align:right;"><b>%s - </b></td>' % s
-        data = data + '<td><input class=myinput type=text size=8 id=notch-%s-low value=%s></td>' % (s, s)
-        data = data + '<td><input class=myinput type=text size=8 id=notch-%s-high value=%s></td>' % (s, s)
-        data = data + '<td><input class=myinput type=text size=8 id=notch-%s-output value=%s></td>' % (s, s)
-        data = data + '<td><input class="theButton" type="button" onclick="setNotch(%s);" value="Prg"></td>' % s
+        data = data + '<td style="text-align:right;"><b>%s - </b></td>' % str(s+1)
+        data = data + '<td><input class=myinput type=text size=8 id=notchlow%s value=%s></td>' % (str(s+1), nl[s])
+        data = data + '<td><input class=myinput type=text size=8 id=notchhigh%s value=%s></td>' % (str(s+1), nh[s])
+        data = data + '<td><input class=myinput type=text size=8 id=notchoutput%s value=%s></td>' % (str(s+1), nv[s])
+        data = data + '<td><input class="theButton" type="button" onclick="setNotch(%s);" value="Prg"></td>' % str(s+1)
         data = data + '<tr>'
         
     data = data + '<td colspan=5 style="text-align:center;padding-top:10px;">'
