@@ -49,6 +49,11 @@ def setnotch():
     notchlow  = request.form['notchlow']
     notchhigh = request.form['notchhigh']
     notchval  = request.form['notchvalue']
+    enable    = str(request.form['enabled'])
+    
+    enabled = "0"
+    if enable == "true":
+       enabled = "1"
     
     nhigh = "000" + notchhigh
     nhigh = nhigh[-3:]
@@ -60,7 +65,7 @@ def setnotch():
     nval = nval[-3:]
     
     SETNOTCH = 50   ## 1        2        3       4         5         6         7         8         9        10        11         12       
-    payload = chr(SETNOTCH) + enable + notch + nval[0] + nval[1] + nval[2] + nlow[0] + nlow[1] + nlow[2] + nhigh[0] + nhigh[1] + nhigh[2] + '01234567'   
+    payload = chr(SETNOTCH) + enabled + notch + nval[0] + nval[1] + nval[2] + nlow[0] + nlow[1] + nlow[2] + nhigh[0] + nhigh[1] + nhigh[2] + '01234567'   
     
     print "SET NOTCH", payload
     
@@ -347,12 +352,16 @@ def setbase():
     return NOP
 
 
-def consistScreen(address, name, message):
+def consistScreen(message):
     nl = []
     nh = []
     nv = []
     
     enablenotches = message[10]
+    enabled = ""
+    if enablenotches == 1:
+       enabled = "checked"
+    
     l = 11
     for i in range(0,8):
         nl.append(message[l])
@@ -363,9 +372,13 @@ def consistScreen(address, name, message):
         l = l + 1
     
     data = '''    
-        <table border="0" class="center" padding=4 style="align-self:center;margin-top:20px;">
-           <td colspan=5 style="padding-top:8px;text-align:center;"><h3>Notch Table</h3></td>
-           <tr><td></td><td>low</td><td>high</td><td>output</td><tr>'''
+        <table border="0" class="center" padding=4 style="align-self:center;margin-top:10px;">
+           <td colspan=5 style="padding-top:8px;text-align:center;">
+           
+           <div style="font-size:14px;margin-bottom:12px;"><input type=checkbox onchange="setNotch(1);" id=enablenotch name=enablenotch %s> Enable Notch Table</div> 
+           
+           </td>
+           <tr><td></td><td>low</td><td>high</td><td>output</td><tr>''' % enabled
            
     for s in range(0,8):
         data = data + '<td style="text-align:right;"><b>%s - </b></td>' % str(s+1)
@@ -575,8 +588,7 @@ def refreshnode():
        return data
 
     if nodetype == 'N':
-       print "CONSIST SCREEN", address, name, message
-       data = consistScreen(address, name, message)
+       data = consistScreen(message)
        return data
 
        

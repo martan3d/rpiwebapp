@@ -60,6 +60,7 @@ function getNode(address, name)
 
 function setNotch(notchNum)
 {
+   var enabled    = document.getElementById("enablenotch").checked;
    var address    = document.getElementById('address').value;
    var myval      = 'notchlow'+notchNum;
    var notchlow   = document.getElementById(myval);
@@ -72,6 +73,7 @@ function setNotch(notchNum)
    
    var xhr;
    var params = "address="+address+"&notchnum="+notchNum;
+   params = params +"&enabled="+enabled;
    params = params +"&notchlow="+notchlow.value;
    params = params +"&notchhigh="+notchhigh.value+"&notchvalue="+notchvalue.value;
    xhr = new XMLHttpRequest();
