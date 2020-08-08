@@ -590,6 +590,8 @@ def refreshnode():
     if nodetype == 'N':
        data = consistScreen(message)
        return data
+       
+    return NOP
 
        
 def nodeScreen(address):
