@@ -20,6 +20,42 @@ adprot = { 0x30 :'A', 0x31 :'B', 0x32 :'C', 0x33 :'D', 0x34 :'E', 0x35 :'F', 0x3
            0x3a : 'K', 0x3b : 'L', 0x3c : 'M', 0x3d : 'N', 0x3e : 'O', 0x3f : 'P', 0x40 : 'Q', 0x41 : 'R', 0x42 : 'S',
            0x43 : 'T', 0x44 : 'U', 0x45 : 'V', 0x46 : 'W', 0x47 : 'X', 0x48 : 'Y', 0x49 : 'Z' }
 
+
+@main_api.route('/setmask/', methods=['GET','POST'])
+def setmask():
+    address = request.form['address']
+    masknum = int(request.form['masknum'])
+    maskval = int(request.form['value'])
+    
+    SETNOTCHMASK = 51   ## 1        2        3       
+    payload = chr(SETNOTCHMASK) + chr(masknum) + chr(maskval) + '45678901201234567'   
+    
+    print "SET NOTCH MASK", payload
+    
+    senddata = base64.b64encode(json.dumps(['SETNOTCHMASK', address, payload]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    
+    return NOP
+    
+    
+    
+
+@main_api.route('/functionmask/', methods=['GET','POST'])
+def functionmask():
+    global GLOB
+    
+    address = request.form['address']
+    name    = request.form['name']
+
+    senddata = base64.b64encode(json.dumps(['GETFUNCTIONMASK', address, '01234567890123456789']))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    GLOB = 'G'
+    
+    return render_template('functionmask.html', address=address, name=name)
+
+
 @main_api.route('/notchtable/', methods=['GET','POST'])
 def notchtable():
     global GLOB
@@ -351,6 +387,76 @@ def setbase():
 
     return NOP
 
+def functionMaskDisplay(message):
+    masks = []
+    bits = 1
+    highbyte = message[10]
+    lowbyte  = message[11]
+    
+    for i in range(0,8):
+        if highbyte & bits:
+           masks.append('checked')
+        else:
+           masks.append('')
+        bits = bits << 1
+        
+    bits = 1    
+        
+    for i in range(8,16):
+        if lowbyte & bits:
+           masks.append('checked')
+        else:
+           masks.append('')
+        bits = bits << 1
+               
+
+    data = '''<table border="0" class="center" padding=4 style="align-self:center;margin-top:10px;">'''
+
+    data = data + '<td colspan=8 style="text-align:center;padding:10px;"><h3>Function Masks</h3></td><tr>'
+
+                          
+    for d in range(0, 4):
+        data = data + '''<td><div style="display:block;margin:8px;width:50px;height:50px;text-align:center;">F%d<br>''' % d
+        data = data + '<input type=checkbox onchange="setFunction(%d);" id=mask%d %s> ''' % (d, d, masks[d])
+        data = data + '</div>'
+        data = data + '</td>'
+
+    data = data + '<tr>'
+
+    for d in range(4, 8):
+        data = data + '''<td><div style="display:block;margin:8px;width:50px;height:50px;text-align:center;">F%d<br>''' % d
+        data = data +  '<input type=checkbox onchange="setFunction(%d);" id=mask%d %s> ''' % (d, d, masks[d])
+        data = data + '</div>'
+        data = data + '</td>'
+
+    data = data + '<tr>'
+
+    for d in range(8, 12):
+        data = data + '''<td><div style="display:block;margin:8px;width:50px;height:50px;text-align:center;">F%d<br>''' % d
+        data = data +  '<input type=checkbox onchange="setFunction(%d);" id=mask%d %s> ''' % (d, d, masks[d])
+        data = data + '</div>'
+        data = data + '</td>'
+
+    data = data + '<tr>'
+
+    for d in range(12, 16):
+        data = data + '''<td><div style="display:block;margin:8px;width:50px;height:50px;text-align:center;">F%d<br>''' % d
+        data = data +  '<input type=checkbox onchange="setFunction(%d);" id=mask%d %s> ''' % (d, d, masks[d])
+        data = data + '</div>'
+        data = data + '</td>'
+
+    data = data + '<tr>'
+
+
+    data = data + '<td colspan=8 style="text-align:center;padding-top:10px;">'
+    data = data + '<input class="theButton" type="button" onclick="setHome();" value="Home">'
+    data = data + '</td>'
+    
+    data = data + '</table>'
+    
+    return data
+
+
 
 def consistScreen(message):
     nl = []
@@ -388,9 +494,19 @@ def consistScreen(message):
         data = data + '<td><input class="theButton" type="button" onclick="setNotch(%s);" value="Prg"></td>' % str(s+1)
         data = data + '<tr>'
         
+    data = data + '''
+           <td colspan=5 style="text-align:center;padding-top:10px;">
+           <div style="text-align:center;margin-top:20px;">
+             <input class="theButton" type="button" onclick="getFunctionMask();" value="Set Function Masks">
+           </div></td>'''
+           
+    data = data + '<tr>'
     data = data + '<td colspan=5 style="text-align:center;padding-top:10px;">'
     data = data + '<input class="theButton" type="button" onclick="setHome();" value="Home">'
-    data = data + '</td></table>'
+    data = data + '</td>'
+
+    data = data + '</table>'
+    
 
     return data
 
@@ -589,6 +705,10 @@ def refreshnode():
 
     if nodetype == 'N':
        data = consistScreen(message)
+       return data
+       
+    if nodetype == 'M':
+       data = functionMaskDisplay(message)
        return data
        
     return NOP

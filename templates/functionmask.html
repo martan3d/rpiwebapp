@@ -56,7 +56,35 @@ function getNode(address, name)
 
 }
 
+function setFunction(masknum)
+{
+   var mn = 'mask' + masknum;
+   var ck = document.getElementById(mn).checked;
+   if(ck){
+      value = 1;
+   }
+   else {
+      value = 0;
+   }
+      
+   var address    = document.getElementById('address').value;
 
+   var xhr;
+   var params = "address="+address+"&masknum="+masknum+"&value="+value;
+
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setmask/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+       }
+   }
+
+}
 
 function setNotch(notchNum)
 {
@@ -96,21 +124,12 @@ function getFunctionMask()
     form.setAttribute("action", '/functionmask/');
 
     var macaddr = document.getElementById('address').value; 
-    var name    = document.getElementById('name').value;
 
     var hf = document.createElement("input");
     hf.setAttribute("type", "hidden");
     hf.setAttribute("name", "address");
     hf.setAttribute("value", macaddr);
     form.appendChild(hf);
-
-    hf = document.createElement("input");
-    hf.setAttribute("type", "hidden");
-    hf.setAttribute("name", "name");
-    hf.setAttribute("value", name);
-    form.appendChild(hf);
-
-
 
     document.body.appendChild(form);
     form.submit();
