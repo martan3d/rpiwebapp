@@ -20,6 +20,66 @@ function zoom() {
 }
 
 
+function setfunction(f)
+{
+var fc;
+var out;
+
+   if(f==1)
+   {
+      fc = document.getElementById('fcx').value;
+      out = document.getElementById('outx').value;
+   }
+   else
+   {
+      fc = document.getElementById('fcy').value;
+      out = document.getElementById('outy').value;
+   }
+      
+   var macadd = document.getElementById('address').value;
+
+   var xhr;
+   var params = "f="+f+"&fc="+fc+"&out="+out+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setoutputs/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+}
+
+
+function setWatchDog()
+{
+   var wdv = document.getElementById('wdv').value;
+   var macadd = document.getElementById('address').value;
+
+   var xhr;
+   var params = "wdv="+wdv+"&address="+macadd;
+   xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = handleStateChange;
+   xhr.open("POST", '/setwatchdog/', true);
+   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhr.setRequestHeader("Content-length", params.length);
+   xhr.setRequestHeader("Connection", "close");
+   xhr.send(params);
+   function handleStateChange() {
+       if (xhr.readyState == 4 &&  xhr.status == 200) {
+           //var element = document.getElementById('textblock');
+           //element.innerHTML = xhr.responseText;
+       }
+   }
+}
+
+
+
 function setnid()
 {
   var xhr;
@@ -43,8 +103,6 @@ function setnid()
       }
   }
 }                        
-
-
 
 
 

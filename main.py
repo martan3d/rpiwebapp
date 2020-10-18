@@ -20,6 +20,44 @@ adprot = { 0x30 :'A', 0x31 :'B', 0x32 :'C', 0x33 :'D', 0x34 :'E', 0x35 :'F', 0x3
            0x3a : 'K', 0x3b : 'L', 0x3c : 'M', 0x3d : 'N', 0x3e : 'O', 0x3f : 'P', 0x40 : 'Q', 0x41 : 'R', 0x42 : 'S',
            0x43 : 'T', 0x44 : 'U', 0x45 : 'V', 0x46 : 'W', 0x47 : 'X', 0x48 : 'Y', 0x49 : 'Z' }
 
+@main_api.route('/setoutputs/', methods=['GET','POST'])
+def setoutputs():
+    address = request.form['address']
+    f = int(request.form['f'])
+    fc = int(request.form['fc'])
+    out = int(request.form['out'])
+    
+    SETOUTPUTSMODE = 26   ## 1        2        3       
+    payload = chr(SETOUTPUTSMODE) + chr(f) + chr(fc) + chr(out) + '5678901201234567'   
+    
+    print "SET OUTPUTS VALUE AND FC", payload
+    
+    senddata = base64.b64encode(json.dumps(['SETOUTPUTSMODE', address, payload]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    
+    return NOP
+
+
+
+
+@main_api.route('/setwatchdog/', methods=['GET','POST'])
+def setwatchdog():
+    address = request.form['address']
+    wdv = int(request.form['wdv'])
+    
+    SETTIMEOUT = 25   ## 1        2        3       
+    payload = chr(SETTIMEOUT) + chr(wdv) + '345678901201234567'   
+    
+    print "SET WATCHDOG VALUE", payload
+    
+    senddata = base64.b64encode(json.dumps(['SETTIMEOUT', address, payload]))
+    r = redis.Redis(host='127.0.0.1', port='6379')
+    r.rpush(['queue:xbeetx'], senddata )
+    
+    return NOP
+
+
 
 @main_api.route('/setmask/', methods=['GET','POST'])
 def setmask():
@@ -670,7 +708,14 @@ def refreshnode():
 
     svrr        = message[32]
     servomode   = message[33]
-
+    
+    watchdogval = message[34]
+    functionX   = message[35] & 0x7f
+    functionY   = message[36] & 0x7f
+    
+    outsetX     = (message[35] & 0x80) >> 7;
+    outsetY     = (message[36] & 0x80) >> 7;
+    
     ## data pulled from return Xbee message, put in redis
 
     r.set("ConsistAddress", consistaddr)
@@ -692,6 +737,11 @@ def refreshnode():
     r.set("airChan", airchan)
     r.set("locoAddr", locoaddr)
     r.set("dccAddr", dccaddr)
+    r.set("watchdog", watchdogval)
+    r.set("outsetX", outsetX)
+    r.set("outsetY", outsetY)
+    r.set("functionX", functionX)
+    r.set("functionY", functionY)
 
     ## Check message return to determine screen to display
     
@@ -737,6 +787,12 @@ def nodeScreen(address):
     svrr        = r.get("ServoReverse")
     servomode   = r.get("ServoMode")
 
+    watchdogval = r.get("watchdog")    ## add watchdog and digital outputs version 2.2
+    outsetX     = r.get("outsetX")
+    outsetY     = r.get("outsetY")
+    functionX   = r.get("functionX")
+    functionY   = r.get("functionY")
+    
     fn0=sv0func
     fn1=sv1func
     fn2=sv2func
@@ -869,6 +925,46 @@ def nodeScreen(address):
     data = data + '''
        <td><input class="theButton" type="button" onclick="setServo(2);" value="Prg"></td>
        <tr>
+       <td colspan=6> &nbsp; </td>
+       <tr>
+    '''   
+       
+    data = data + '''   
+       <td>Watch Dog</td>
+       <td> &nbsp; </td>
+       <td> &nbsp; </td>
+       <td> &nbsp; </td>
+       <td><input type="text" id="wdv" class="myinput" value="%s"></td>''' % watchdogval
+
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setWatchDog();" value="Prg"></td>
+       <tr>
+    '''   
+       
+    data = data + '''   
+       <td>OutputX</td>
+       <td> &nbsp; </td>
+       <td> &nbsp; </td>
+       <td><input type="text" id="fcx" class="myinput" value="%s"></td>
+       <td><input type="text" id="outx" class="myinput" value="%s"></td>''' % (functionX, outsetX)
+
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setfunction(1);" value="Prg"></td>
+       <tr>
+    '''   
+    data = data + '''   
+       <td>OutputY</td>
+       <td> &nbsp; </td>
+       <td> &nbsp; </td>
+       <td><input type="text" id="fcy" class="myinput" value="%s"></td>
+       <td><input type="text" id="outy" class="myinput" value="%s"></td>''' % (functionY, outsetY)
+
+    data = data + '''
+       <td><input class="theButton" type="button" onclick="setfunction(2);" value="Prg"></td>
+       <tr>
+    '''   
+
+    data = data + '''
        </table>'''
     
     if consist != 'OFF':

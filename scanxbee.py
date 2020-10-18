@@ -13,12 +13,14 @@ import MySQLdb
 
 # message codes from front end requests, these are sent to the receiver
 
-SETNOTCHMASKS = 51
-GETNOTCHMASKS = 52
-SETNOTCH      = 50
-READNOTCHES   = 36
-RETURNTYPE    = 37
-SETCV         = 16
+SETNOTCHMASKS  = 51
+GETNOTCHMASKS  = 52
+SETNOTCH       = 50
+READNOTCHES    = 36
+RETURNTYPE     = 37
+SETCV          = 16
+SETTIMEOUT     = 25
+SETOUTPUTSMODE = 26
 
 # build bytes address from string
 
@@ -168,6 +170,20 @@ while(1):
        if cmd == 'SCAN':
           clearDatabase()
           Xbee.xbeeDataQuery('N','D')
+          
+       if cmd == 'SETTIMEOUT':
+          address = message[1]
+          data    = message[2]
+          txaddr  = buildAddress(address)
+          data =  chr(SETTIMEOUT) + data[1:]
+          Xbee.xbeeTransmitDataFrame(txaddr, data)
+          
+       if cmd == 'SETOUTPUTSMODE':
+          address = message[1]
+          data    = message[2]
+          txaddr  = buildAddress(address)
+          data =  chr(SETOUTPUTSMODE) + data[1:]
+          Xbee.xbeeTransmitDataFrame(txaddr, data)
           
        if cmd == 'SETNOTCHMASK':
           address = message[1]
