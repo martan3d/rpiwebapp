@@ -1,3 +1,5 @@
+# create database
+
 import MySQLdb as db
 import sys
 
@@ -13,11 +15,11 @@ except:
 cur.execute('USE webapp;')
 
 try:
-   cur.execute("CREATE USER 'apache'@'localhost' IDENTIFIED BY 'raspberry';")
+   cur.execute("CREATE USER 'www-data'@'localhost' IDENTIFIED BY 'raspberry';")
 except:
    pass
 
-cur.execute("GRANT ALL ON webapp.* TO 'apache'@'localhost';")
+cur.execute("GRANT ALL ON webapp.* TO 'www-data'@'localhost';")
 
 db.connect(host="localhost", passwd="raspberry", db="webapp")
 
