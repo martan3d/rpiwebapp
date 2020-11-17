@@ -9,7 +9,9 @@ cur = con.cursor()
 try:
    cur.execute('CREATE DATABASE webapp;')
 except:
-   print "Webapp database already exists, manually drop it before running this script"
+   print "Webapp database already exists, drop it"
+   cur.execute('DROP DATABASE webapp;')   
+   cur.execute('CREATE DATABASE webapp;')
    sys.exit(1)
 
 cur.execute('USE webapp;')
