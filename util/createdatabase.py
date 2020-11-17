@@ -12,7 +12,6 @@ except:
    print "Webapp database already exists, drop it"
    cur.execute('DROP DATABASE webapp;')   
    cur.execute('CREATE DATABASE webapp;')
-   sys.exit(1)
 
 cur.execute('USE webapp;')
 
